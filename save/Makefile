@@ -1,0 +1,1107 @@
+### ====================================================================
+### Makefile for BibTeX .bib file prettyprinter
+###
+### Current target list: (these include all GNU Project standard
+### targets)
+###
+###	all			build bibclean
+###	bibclean		executable for bibclean
+###	bibclean.h		documentation strings for help()
+###				function
+###	bibclean.hlp		VAX VMS help file (automatically
+###				converted from bibclean.txt)
+###	bibclean.html		HTML version of formatted manual pages
+###	bibclean.i		C preprocessor output from bibclean.c
+###	bibclean.jar		Java Jar distribution archive
+###	bibclean.pdf		Adobe Portable Document Format version
+###				of bibclean.man
+###	bibclean.ps		PostScript version of bibclean.man
+###	bibclean.tar		tar archive file for ftp distribution
+###	bibclean.txt		nroff'ed bibclean.man manual page file
+###	bibclean.zip		Info-zip archive file for ftp
+###				distribution
+###	bibclean.zoo		zoo archive file for ftp distribution
+###	check			same as test (see below)
+###	clean			clean up all but executables and time
+###				stamps
+###	clobber			clean up everything
+###	distclean		remove everything make can rebuild at
+###				remote site
+###	docs			make bibclean.txt, bibclean.hlp, and
+###				bibclean.ps
+###	install			install executable and man pages
+###	install.time		internal target for install
+###	install-exe		install executable
+###	install-man		install man pages
+###	install-ftp		install .tar, .zip, and .zoo files in
+###				ftp tree
+###	install-ftp.time	internal target for install-ftp
+###	lint			check for code problems
+###	mostlyclean		same as clean
+###	maintainer-clean	for program author only: remove
+###				everything make can rebuild at
+###				author's site
+###	romtol			build and run test program for romtol()
+###	TAGS			GNU Emacs tags file
+###	test			test bibclean on BibTeX and Scribe
+###				bibliographies
+###	test-bibtex		test 1,2,3 bibclean on BibTeX
+###				bibliographies
+###	test-bibtex-1		test 1 bibclean on BibTeX bibliographies
+###	test-bibtex-2		test 2 bibclean on BibTeX bibliographies
+###	test-bibtex-3		test 3 ISBN and ISSN verification
+###	test-scribe		test 1,2,3 bibclean on Scribe
+###				bibliographies
+###	test-scribe-1		test 1 bibclean on Scribe bibliographies
+###	test-scribe-2		test 2 bibclean on Scribe bibliographies
+###	test-scribe-3		test 3 bibclean on Scribe bibliographies
+###	test-version		test extraction of version number
+###	uninstall		remove files installed by "make install"
+###	uninstall-ftp		remove installed files in anonymous ftp
+###				directory
+###
+### [28-Aug-2001] -- major update for bibclean 2.12 and later
+### [01-Jul-1996] -- add targets bibclean.pdf and DISTILL macro, and
+###		     update DIST-FILES list
+### [03-May-1996] -- add targets match, romtol, test-match, and
+###		     and test-romtol, and update DIST-FILES list for
+###		     version 2.11.3 release
+### [25-Apr-1996] -- add target for bibclean.html, with associated
+###		     support Makefile variables
+### [20-Sep-1995] -- revise to use GNU autoconf and configure
+### [08-Mar-1995] -- Change TARGET to TARGETS to avoid conflict with
+###		     built-in macro on Cray systems. Add -D_POSIX_SOURCE
+###		     to dec-alpha-osf1-c++ CC definition to work around
+###		     bug in C++ signal.h header file on OSF/1 3.x.
+### [21-Nov-1994] -- add cray-el94 target
+### [11-Nov-1994] -- add sun-sparc-solaris2-lcc and sun-sparc-sunos5-lcc
+###		     targets
+### [18-Oct-1994] -- add isbn.[co] to file lists
+### [16-Oct-1994] -- add strist.[co] to file lists
+### [04-Jun-1994] -- update for version 2.10
+###		     add lint target
+### [31-Dec-1993] -- final polishing of Makefile for public release
+###		     after TUGboat publication
+### [24-Sep-1993] -- original version
+### ====================================================================
+
+### --------------------------------------------------------------------
+### Start of system configuration section.
+
+prefix		= /usr/local
+exec_prefix     = $(prefix)
+
+bindir          = $(exec_prefix)/bin
+srcdir          = .
+
+### This is needed only at the developer's site:
+FTPDIR		= /u/ftp/pub/tex/bib
+
+CC              = c99
+CFLAGS          = -g -O2 $(OPT)
+CPPFLAGS	= 
+
+DEFS            = -DHAVE_CONFIG_H
+
+LDFLAGS         =  $(OPT)
+LIBOBJS		= 
+LIBS            = 
+
+OPT		=
+
+
+
+### Where to install the manual pages.
+mandir          = $(prefix)/man/man1
+### Extension (not including `.') for the installed manual page filenames.
+manext          = 1
+
+### End of system configuration section.
+### --------------------------------------------------------------------
+
+AUTOCONF	= autoconf
+
+AUTOHEADER	= autoheader
+
+AWK		= mawk
+
+### For testing purposes, make sure we always have the same
+### initialization files.
+BIBCLEAN	= ../bibclean \
+			-init-file ../bibclean.ini \
+			-ISBN-file ../bibclean.isbn \
+			-keyword-file ../bibclean.key \
+
+### This option is normally empty, but is used by the developer
+### to test whether new options affect output.
+BIBCLEANFLAGS	=
+
+BIBTEX		= bibtex
+
+CAT		= cat
+
+CHECK-BIBTEX    = testbib1 testbib2 testbib3 testbib4 testbib5 \
+		  testbib6 testcodn testisxn testopt1 testopt2 \
+		  testopt3 testopt4 testopt5 testopt6 testopt7 \
+		  testopt8 testopt9 testopta testoptb testoptc \
+		  testoptd testopte testoptf testoptg testopth \
+		  testopti testoptj testoptk testoptl testoptm \
+		  testoptn testopto testoptp testoptq testoptr \
+		  testopts testoptt
+
+CHECK-LATEX	= testltx1.ltx
+
+CHECK-MATCH	= match.in
+
+CHECK-ROMTOL	= romtol.in
+
+CHECK-SCRIBE	= testscr1.bib testscr2.bib testscr3.bib testscr4.bib
+
+### This program is freely available at ftp://ftp.math.utah.edu/pub/checksum/
+CHECKSUM	= checksum
+
+CHMOD		= chmod
+
+CMP		= cmp
+
+CP		= scp -p
+
+CUT		= cut
+
+DATE		= date
+
+DIFF		= diff
+
+DIST-FILES      = ChangeLog COPYING README Makefile.in bibclean.c bibclean.h \
+		  bibclean.hlp bibclean.html bibclean.ini bibclean.isbn \
+		  bibclean.key bibclean.man bibclean.pdf bibclean.ps \
+		  bibclean.reg bibclean.txt build-all.sh ch.h chek.c \
+		  config.hin configure configure.in configure.sed custom.h \
+		  delete.h do.c fix.c fndfil.c isbn.c isbn.h isbn.tbl \
+		  isbn-el-to-bibclean-isbn.awk keybrd.c keybrd.h match.c \
+		  match.dat match.h option.c pattern.h rofvms.awk romtol.c \
+		  romtol.dat strist.c strtol.c token.h toklst.h tstctype.c \
+		  typedefs.h vaxvms.c vmswild.c xctype.h xerrno.h xlimits.h \
+		  xpwd.h xstat.h xstdbool.h xstdio.h xstdlib.h xstring.h \
+		  xtypes.h xunistd.h yesorno.h testscr2.bo2 testscr2.eo2 \
+		  $(FILES-DOC) $(FILES-IBMPC) $(FILES-SAVE) $(FILES-TEST) \
+		  $(FILES-VMS)
+
+DISTILL		= distill
+
+DITROFF		= groff
+
+ETAGS		= etags
+
+EXEEXT		= 
+
+EXPR		= expr
+
+### On UNIX systems, the FILES-xxx lists could be generated by `find xxx
+### -type f | sort`, but explicit enumeration eases portability to other
+### operating systems, and ensures that we do not accidentally include
+### unwanted temporary files that might be present.
+FILES-DOC       = doc/Makefile doc/bibclean.aux doc/bibclean.bbl \
+		  doc/bibclean.bib doc/bibclean.blg doc/bibclean.dvi \
+		  doc/bibclean.idw doc/bibclean.idx doc/bibclean.ilg \
+		  doc/bibclean.ind doc/bibclean.log doc/bibclean.lot \
+		  doc/bibclean.ltx doc/bibclean.pdf doc/bibclean.ps \
+		  doc/bibclean.sok doc/bibclean.sty doc/bibclean.toc \
+		  doc/is-plain.bst doc/ltugboat.sty doc/path.sty \
+		  doc/texnames.sty doc/tugboat.cmn
+
+FILES-IBMPC	= ibmpc/dos/README ibmpc/dos/msc5p1/bibclean.exe \
+		  ibmpc/dos/msc5p1/config.h ibmpc/dos/msc5p1/ibmclean.bat \
+		  ibmpc/dos/msc5p1/ibmtest.bat ibmpc/dos/msc5p1/msc51bld.bat \
+		  ibmpc/dos/msc5p1/msc51pth.bat ibmpc/dos/msc6p0/bibclean.exe \
+		  ibmpc/dos/msc6p0/bibclean.map ibmpc/dos/msc6p0/config.h \
+		  ibmpc/dos/msc6p0/ibmclean.bat ibmpc/dos/msc6p0/ibmtest.bat \
+		  ibmpc/dos/msc6p0/msc60bld.bat ibmpc/dos/msc6p0/msc60pth.bat \
+		  ibmpc/dos/msc7p0/config.h ibmpc/dos/msc7p0/ibmclean.bat \
+		  ibmpc/dos/msc7p0/ibmtest.bat ibmpc/dos/msc7p0/msc70bld.bat \
+		  ibmpc/dos/msc7p0/msc70pth.bat ibmpc/dos/tcc2p0/bibclean.exe \
+		  ibmpc/dos/tcc2p0/config.h ibmpc/dos/tcc2p0/ibmclean.bat \
+		  ibmpc/dos/tcc2p0/ibmtest.bat ibmpc/dos/tcc2p0/tcc20bld.bat \
+		  ibmpc/dos/tcc2p0/tcc20pth.bat ibmpc/dos/tcc3p0/bibclean.exe \
+		  ibmpc/dos/tcc3p0/config.h ibmpc/dos/tcc3p0/ibmclean.bat \
+		  ibmpc/dos/tcc3p0/ibmtest.bat ibmpc/dos/tcc3p0/tcc30bld.bat \
+		  ibmpc/dos/tcc3p0/tcc30pth.bat ibmpc/dos/tpp3p0/bibclean.exe \
+		  ibmpc/dos/tpp3p0/config.h ibmpc/dos/tpp3p0/ibmclean.bat \
+		  ibmpc/dos/tpp3p0/ibmtest.bat ibmpc/dos/tpp3p0/tcc30pth.bat \
+		  ibmpc/dos/tpp3p0/tpp30bld.bat \
+		  ibmpc/dos/wat10/wcc/bibclean.exe \
+		  ibmpc/dos/wat10/wcc/bibclean.map \
+		  ibmpc/dos/wat10/wcc/config.h \
+		  ibmpc/dos/wat10/wcc/ibmclean.bat \
+		  ibmpc/dos/wat10/wcc/ibmtest.bat \
+		  ibmpc/dos/wat10/wcc/watcpp.bat \
+		  ibmpc/dos/wat10/wcc/watpath.bat \
+		  ibmpc/dos/wat10/wcc/watwcc.bat \
+		  ibmpc/dos/wat10/wcc386/bibclean.exe \
+		  ibmpc/dos/wat10/wcc386/config.h \
+		  ibmpc/dos/wat10/wcc386/dos4gw.doc \
+		  ibmpc/dos/wat10/wcc386/dos4gw.exe \
+		  ibmpc/dos/wat10/wcc386/ibmclean.bat \
+		  ibmpc/dos/wat10/wcc386/ibmtest.bat \
+		  ibmpc/dos/wat10/wcc386/wat10bld.bat \
+		  ibmpc/dos/wat10/wcc386/watpath.bat \
+		  ibmpc/dos/wat10/wpp386/bibclean.exe \
+		  ibmpc/dos/wat10/wpp386/config.h \
+		  ibmpc/dos/wat10/wpp386/dos4gw.doc \
+		  ibmpc/dos/wat10/wpp386/dos4gw.exe \
+		  ibmpc/dos/wat10/wpp386/ibmclean.bat \
+		  ibmpc/dos/wat10/wpp386/ibmtest.bat \
+		  ibmpc/dos/wat10/wpp386/w386cpp.bat \
+		  ibmpc/dos/wat10/wpp386/watpath.bat ibmpc/linux/bibclean
+
+FILES-SAVE	= save/Makefile save/config.h save/config.hin save/configure \
+		  save/custom.h
+
+FILES-TEST      = test/match.in test/okay/match.err test/okay/match.out \
+		  test/okay/romtol.err test/okay/romtol.out \
+		  test/okay/testbib1.err test/okay/testbib1.out \
+		  test/okay/testbib2.err test/okay/testbib2.out \
+		  test/okay/testbib3.err test/okay/testbib3.out \
+		  test/okay/testbib4.err test/okay/testbib4.out \
+		  test/okay/testbib5.err test/okay/testbib5.out \
+		  test/okay/testbib6.err test/okay/testbib6.out \
+		  test/okay/testcodn.err test/okay/testcodn.out \
+		  test/okay/testisxn.err test/okay/testisxn.out \
+		  test/okay/testltx1.bbl test/okay/testltx1.blg \
+		  test/okay/testltx1.err test/okay/testltx1.out \
+		  test/okay/testopt1.err test/okay/testopt1.out \
+		  test/okay/testopt2.err test/okay/testopt2.out \
+		  test/okay/testopt3.err test/okay/testopt3.out \
+		  test/okay/testopt4.err test/okay/testopt4.out \
+		  test/okay/testopt5.err test/okay/testopt5.out \
+		  test/okay/testopt6.err test/okay/testopt6.out \
+		  test/okay/testopt7.err test/okay/testopt7.out \
+		  test/okay/testopt8.err test/okay/testopt8.out \
+		  test/okay/testopt9.err test/okay/testopt9.out \
+		  test/okay/testopta.err test/okay/testopta.out \
+		  test/okay/testoptb.err test/okay/testoptb.out \
+		  test/okay/testoptc.err test/okay/testoptc.out \
+		  test/okay/testoptd.err test/okay/testoptd.out \
+		  test/okay/testopte.err test/okay/testopte.out \
+		  test/okay/testoptf.err test/okay/testoptf.out \
+		  test/okay/testoptg.err test/okay/testoptg.out \
+		  test/okay/testopth.err test/okay/testopth.out \
+		  test/okay/testopti.err test/okay/testopti.out \
+		  test/okay/testoptj.err test/okay/testoptj.out \
+		  test/okay/testoptk.err test/okay/testoptk.out \
+		  test/okay/testscr1.bbl test/okay/testscr1.blg \
+		  test/okay/testscr1.err test/okay/testscr1.out \
+		  test/okay/testscr2.bbl test/okay/testscr2.blg \
+		  test/okay/testscr2.err test/okay/testscr2.out \
+		  test/okay/testscr3.bbl test/okay/testscr3.blg \
+		  test/okay/testscr3.err test/okay/testscr3.out \
+		  test/okay/testscr4.bbl test/okay/testscr4.blg \
+		  test/okay/testscr4.err test/okay/testscr4.out \
+		  test/okay/tstctype.out \
+		  test/romtol.in test/testbib1.bib test/testbib1.opt \
+		  test/testbib2.bib test/testbib2.opt test/testbib3.bib \
+		  test/testbib3.opt test/testbib4.bib test/testbib4.opt \
+		  test/testbib5.bib test/testbib5.opt test/testbib6.bib \
+		  test/testbib6.opt test/testcodn.bib test/testcodn.opt \
+		  test/testisxn.bib test/testisxn.opt test/testltx1.bin \
+		  test/testltx1.ltx test/testltx1.opt test/testopt1.bib \
+		  test/testopt1.opt test/testopt2.bib test/testopt2.opt \
+		  test/testopt3.bib test/testopt3.opt test/testopt4.bib \
+		  test/testopt4.opt test/testopt5.bib test/testopt5.opt \
+		  test/testopt6.bib test/testopt6.opt test/testopt7.bib \
+		  test/testopt7.opt test/testopt8.bib test/testopt8.opt \
+		  test/testopt9.bib test/testopt9.opt test/testopta.bib \
+		  test/testopta.opt test/testoptb.bib test/testoptb.opt \
+		  test/testoptc.bib test/testoptc.opt test/testoptd.bib \
+		  test/testoptd.opt test/testopte.bib test/testopte.opt \
+		  test/testoptf.bib test/testoptf.opt test/testoptg.bib \
+		  test/testoptg.opt test/testopth.bib test/testopth.opt \
+		  test/testopti.bib test/testopti.opt test/testoptj.bib \
+		  test/testoptj.opt test/testoptk.bib test/testoptk.opt \
+		  test/testscr1.bib test/testscr1.opt test/testscr2.bib \
+		  test/testscr2.opt test/testscr3.bib test/testscr3.opt \
+		  test/testscr4.bib test/testscr4.opt
+
+FILES-VMS       = vms/config.h vms/alpha/bibclean.exe vms/alpha/recomp.com \
+		  vms/alpha/vmsclean.com vms/alpha/vmsmake.com \
+		  vms/alpha/vmstest.com vms/vax/README vms/vax/bibclean.exe \
+		  vms/vax/bibclean.obj vms/vax/chek.obj vms/vax/config.h \
+		  vms/vax/do.obj vms/vax/fix.obj vms/vax/fndfil.obj \
+		  vms/vax/getoneheader.com vms/vax/getvmsheaders.com \
+		  vms/vax/isbn.obj vms/vax/keybrd.obj vms/vax/match.obj \
+		  vms/vax/option.obj vms/vax/recomp.com vms/vax/romtol.obj \
+		  vms/vax/strist.obj vms/vax/vaxvms.obj vms/vax/vmsclean.com \
+		  vms/vax/vmsmake.com vms/vax/vmstest.com vms/vax/vmswild.obj
+
+FIXBLG		= $(SED) -e "/^You've used/,/^write/d" -e "/^This is BibTeX/,/^Database file/d"
+
+GREP		= egrep
+
+GZIP		= gzip
+
+### Some systems define HOST or HOSTNAME, but others don't, so we
+### generate it at compile time with the hostname utility.
+HOST		= `hostname`
+
+### This program is freely available at ftp://ftp.math.utah.edu/pub/sgml/sp-*
+HTMLNCHECK	= html-ncheck
+
+### This program is freely available at ftp://ftp.math.utah.edu/pub/sgml/htmlpty-x.y.*
+HTMLPRETTY	= html-pretty
+
+JAR		= jar
+
+LATEX		= latex2e
+
+LN		= ln
+
+LS		= ls
+
+MAN2HTML	= man2html
+
+MKDIR		= mkdir -p
+
+MV		= mv
+
+NROFF		= nroff
+
+PROGRAMS	= bibclean$(EXEEXT) match$(EXEEXT) romtol$(EXEEXT) tstctype$(EXEEXT)
+
+RM		= rm -f
+
+SED		= sed
+
+SHELL		= /bin/sh
+
+SRC             = bibclean.c chek.c do.c fix.c fndfil.c isbn.c \
+		  keybrd.c match.c option.c romtol.c strist.c strtol.c
+
+STRIP		= strip
+
+### Only the subdirectories with Makefiles are listed here
+SUBDIRS		= doc
+
+TAR		= gnutar
+
+TAGS-FILES      = bibclean.c bibclean.h ch.h chek.c config.h custom.h \
+		  delete.h do.c fix.c fndfil.c isbn.c isbn.h keybrd.c \
+		  keybrd.h match.c match.h option.c pattern.h romtol.c \
+		  strist.c strtol.c token.h toklst.h vaxvms.c \
+		  vmswild.c xctype.h xerrno.h xlimits.h xpwd.h xstat.h \
+		  xstdbool.h xstdio.h xstdlib.h xstring.h xtypes.h xunistd.h \
+		  yesorno.h
+
+TEST		= test
+
+TOUCH		= touch
+
+TR		= tr
+
+UNZIP		= unzip
+
+VERSION		= `$(AWK) '/^[ \t]*version *= *"[0-9.]+", *$$/ \
+		{ gsub(/[^0-9.]/,"",$$3); print $$3 }' bibclean.c`
+VERSION		= 2.16
+
+XSPLINTFLAGS	=
+
+ZIP		= zip
+
+ZOO		= zoo
+
+#=======================================================================
+# Syntax and security checker settings
+
+ANTIC		= antic
+ANTICFLAGS	=
+
+CPPCHECK	= cppcheck
+CPPCHECKFLAGS	= -I. --enable=all --force --verbose
+
+FLAWFINDER	= flawfinder
+FLAWFINDERFLAGS	=
+
+ITS4		= its4
+ITS4FLAGS	=
+
+LINT		= lint
+LINTFLAGS	= -I. -b -c -h -x
+LINTFLAGS	= -I. -errchk -h -x
+
+RATS		= rats
+RATSFLAGS	=
+
+SPLINT		= splint
+SPLINTFLAGS	= -I. \
+		  -booltype _Bool \
+		  -booltrue __true \
+		  -boolfalse __false \
+		  -bounds \
+		  -initallelements \
+		  +posixlib \
+		  $(XSPLINTFLAGS)
+
+UNO		= uno
+UNOFLAGS	= -I. -w -D_Bool=int
+
+### ====================================================================
+
+.SUFFIXES:
+
+.SUFFIXES: .o .i .c .bib-new .bib-old .bib
+
+.bib.bib-new:
+	-$(BIBCLEAN) $(BIBCLEANFLAGS) <$< >$@
+
+.c.i:
+	$(CC) -E -I. -I$(srcdir) $(DEFS) $(CPPFLAGS) $(CFLAGS) $< 2>&1 | \
+		grep -v '^[ 	]*$$' >$@
+
+.c.o:
+	$(CC) -c -I. -I$(srcdir) $(DEFS) $(CPPFLAGS) $(CFLAGS) $<
+
+### ====================================================================
+
+all: 	$(PROGRAMS)
+
+BIBCLEAN-OBJS   = bibclean.o chek.o do.o fix.o fndfil.o isbn.o \
+		  keybrd.o match.o option.o romtol.o strist.o \
+		  $(LIBOBJS)
+
+bibclean$(EXEEXT):         $(BIBCLEAN-OBJS)
+	$(CC) -o $@ $(CFLAGS) $(BIBCLEAN-OBJS) $(LDFLAGS) $(LIBS)
+
+bibclean.dvi: bibclean.texi
+	cd $(srcdir); texi2dvi bibclean.texi
+
+### This target converts the option descriptions from the manual pages
+### to C code for inclusion in bibclean.c.  The first awk command
+### augments the bibclean.man file in a pipe with some small changes
+### after the .TH line (which sets page dimensions) to get longer
+### unhyphenated ragged-right lines without page headers, and reduces
+### the option description indentation.
+###
+### Here are the magic nroff incantations:
+###
+### .pl 100i	set page length to 100in
+### .nr LL 7.2i	set LL register (page width) to 7.2in
+### .nh		no hyphenation
+### .na		no right-adjusting
+###
+### That output feeds into nroff for formatting, col for removal of
+### underlining and escape sequences, expand for tab removal, sed to
+### backslash all quotes, and a final awk step to select the lines
+### between OPTIONS and ERROR headers for conversion to C code.
+
+bibclean.h:	bibclean.man
+	-$(CHMOD) u+w $@
+	-$(RM) $@
+	echo '/* WARNING: Do NOT edit this file.  It was created automatically'\
+		>$@
+	echo '   with the command "make bibclean.h" by '$$USER@`hostname` \
+		>>$@
+	echo '   in '$$PWD' on '`date`' */' >>$@
+	echo >>$@
+	$(AWK) '{ if ($$0 ~ /^.TH/) \
+		printf("%s\n.pl 100i\n.nr LL 7.2i\n.nh\n.na",$$0); \
+	    else if ($$0 ~ /^.TP .*remove-OPT-prefixes.*/) \
+		print ".TP 1in"; \
+	    else \
+			print $$0}' <bibclean.man | \
+	$(NROFF) -man | col -b | expand | $(SED) -e 's/"/\\"/g' | \
+		$(SED) -e 's/\\n/|n/g' -e 's/\\"/|"/g' \
+			-e 's/\\/\\\\/g' -e 's/|n/\\n/g' -e 's/|"/\\"/g' | \
+		$(AWK) '/^OPTION/,/^ERROR/ {if ($$0 !~ /^[A-Z]/) \
+			printf("\t\"%s\\n\",\n",substr($$0,6))}' >>$@
+	echo '	(const char*)NULL,' >>$@
+	$(CHMOD) a-w $@
+
+### VAX VMS help file format from bibclean.txt
+bibclean.hlp:	bibclean.txt rofvms.awk
+	$(AWK) -f rofvms.awk <bibclean.txt >bibclean.hlp
+
+bibclean.html:	bibclean.man
+	-$(CHMOD) u+w $@
+	$(MAN2HTML) $<
+	$(HTMLPRETTY) bibclean.html | $(CHECKSUM) >$@.tmp
+	$(MV) $@.tmp $@
+	$(CHMOD) a-w $@
+	$(HTMLNCHECK) $@
+
+bibclean.info: bibclean.texi
+	cd $(srcdir); makeinfo bibclean.texi
+
+bibclean.i:	bibclean.c ch.h config.h custom.h delete.h isbn.h keybrd.h \
+		match.h pattern.h token.h toklst.h typedefs.h xctype.h \
+		xlimits.h xstdbool.h xstdio.h xstdlib.h xstring.h xtypes.h \
+		xunistd.h yesorno.h Makefile
+
+bibclean.jar:	subdist $(DIST-FILES)
+	-$(RM) bibclean.jar bibclean.jar-lst
+	$(JAR) cf bibclean.jar $(DIST-FILES)
+	-$(MKDIR) bibclean-$(VERSION)
+	cd bibclean-$(VERSION); $(JAR) xf ../bibclean.jar
+	$(JAR) cf bibclean-$(VERSION).jar bibclean-$(VERSION)
+	-$(RM) -rf bibclean-$(VERSION)
+	-$(RM) bibclean.jar
+	$(LN) bibclean-$(VERSION).jar bibclean.jar
+
+bibclean.o:	bibclean.c ch.h config.h custom.h delete.h isbn.h keybrd.h \
+		match.h pattern.h token.h toklst.h typedefs.h xctype.h \
+		xlimits.h xstdbool.h xstdio.h xstdlib.h xstring.h xtypes.h \
+		xunistd.h yesorno.h
+
+bibclean.pdf:	bibclean.ps
+	$(DISTILL) bibclean.ps
+
+bibclean.ps:	bibclean.man
+	$(DITROFF) -Tps -man $? >$@
+
+bibclean.tar:	subdist $(DIST-FILES)
+	-$(RM) bibclean.tar bibclean.tar-lst
+	$(TAR) chf bibclean.tar $(DIST-FILES)
+	-$(MKDIR) bibclean-$(VERSION)
+	cd bibclean-$(VERSION); $(TAR) xf ../bibclean.tar
+	$(TAR) cf bibclean-$(VERSION).tar bibclean-$(VERSION)
+	-$(RM) -r bibclean-$(VERSION)
+	-$(RM) bibclean.tar
+	$(LN) bibclean-$(VERSION).tar bibclean.tar
+
+bibclean.txt:	bibclean.man
+	$(NROFF) -man bibclean.man | col -b | expand >$@
+
+bibclean.zip:	subdist $(DIST-FILES)
+	-$(RM) bibclean*.zip
+	-$(RM) bibclean*.zip-lst
+	$(ZIP) bibclean-$(VERSION).zip $(DIST-FILES)
+	$(UNZIP) -v bibclean-$(VERSION).zip >bibclean-$(VERSION).zip-lst
+	$(LN) bibclean-$(VERSION).zip bibclean.zip
+
+bibclean.zoo:	subdist $(DIST-FILES)
+	-$(RM) bibclean*.zoo
+	-$(RM) bibclean*.zoo-lst
+	$(ZOO) a bibclean-$(VERSION).zoo $(DIST-FILES)
+	$(ZOO) v bibclean-$(VERSION).zoo >bibclean-$(VERSION).zoo-lst
+	$(LN) bibclean-$(VERSION).zoo bibclean.zoo
+
+check:	check-setup check-ctype check-match check-romtol check-bibtex check-latex check-scribe
+
+check-antic:
+	-$(TEST) -n "$(ANTIC)" && for f in $(SRC) ; do $(ANTIC) $(ANTICFLAGS) $$f ; done
+
+check-bibtex:	bibclean
+	@echo
+	@echo "===================== begin BibTeX test ======================"
+	@echo
+	@echo This test takes from 1 to 20 seconds on current and vintage machines.
+	@echo Test times that are much longer indicate a SERIOUS problem.
+	@echo
+	@-cd test ; \
+	echo $(CHECK-BIBTEX) | wc -w > total.dat ; \
+	echo "These checks should produce no output other than their numbers and names," ; \
+	echo "followed by a test summary: no failures are expected anywhere." ; \
+	echo ; \
+	nfail=0 ; \
+	npass=0 ; \
+	ntest=0 ; \
+	ntotal=`echo $(CHECK-BIBTEX) | wc -w` ; \
+	for b in $(CHECK-BIBTEX) ; \
+	do \
+		ntest=`$(EXPR) $$ntest + 1` ; \
+		bibfile=$$b.bib ; \
+		optfile=$$b.opt ; \
+		options=`$(CAT) $$optfile` ; \
+		printf "[%2d / %d] " $$ntest $$ntotal ; \
+		echo $$b `echo $$options | $(CUT) -c -70 ` ; \
+		$(BIBCLEAN) $(BIBCLEANFLAGS) `$(CAT) $$optfile` $$bibfile >$$b.out 2> $$b.ert ; \
+		$(GREP) -v '^Compiled by' < $$b.ert >$$b.err ; \
+		$(RM) $$b.ert ; \
+		$(DIFF) okay/$$b.err $$b.err ; \
+		$(CMP) -s okay/$$b.err $$b.err 2>/dev/null && $(RM) $$b.err ; \
+		$(DIFF) okay/$$b.out $$b.out ; \
+		$(CMP) -s okay/$$b.out $$b.out 2>/dev/null && $(RM) $$b.out ; \
+		if test -f $$b.err -o -f $$b.out ; \
+		then \
+		    nfail=`$(EXPR) $$nfail + 1` ; \
+		else \
+		    npass=`$(EXPR) $$npass + 1` ; \
+		fi ; \
+	done ; \
+	echo ; \
+	echo PASS: $$npass of $$ntest tests ; \
+	test $$nfail -ne 0 && echo FAIL: $$nfail of $$ntest tests ; \
+	echo ; \
+	test $$nfail -eq 0 && echo ALL TESTS PASSED! ; \
+	echo ; \
+	$(RM) fail.dat pass.dat total.dat
+	@echo
+	@echo "====================== end BibTeX test ========================"
+	@echo
+
+check-cppcheck:
+	-$(TEST) -n "$(CPPCHECK)" && for f in $(SRC) ; do $(CPPCHECK) $(CPPCHECKFLAGS) $$f ; done
+
+check-ctype:	tstctype
+	@echo
+	@echo "===================== begin ctype test ======================"
+	@echo
+	-@cd test ; \
+	echo "NB: A failure of this test is SERIOUS.  It indicates that the C library" ; \
+	echo "<ctype.h> isxxx() and toxxx() functions are behaving unconventionally," ; \
+	echo "and the result will likely be later failure of the BibTeX testbib1 test." ; \
+	echo "Among systems tested for this release, OpenBSD 3.2 is known to fail here." ; \
+	echo ; \
+	echo "The following checks should produce no output other than their names." ; \
+	echo ; \
+	echo tstctype ; \
+	LANG=C ../tstctype > tstctype.out ; \
+	$(DIFF) okay/tstctype.out tstctype.out ; \
+	$(CMP) -s okay/tstctype.out tstctype.out 2>/dev/null && $(RM) tstctype.out
+	@echo
+	@echo "====================== end ctype test ========================"
+	@echo
+
+check-flawfinder:
+	-$(TEST) -n "$(FLAWFINDER)" && for f in $(SRC) ; do $(FLAWFINDER) $(FLAWFINDERFLAGS) $$f ; done
+
+check-its4:
+	-$(TEST) -n "$(ITS4)" && for f in $(SRC) ; do $(ITS4) $(ITS4FLAGS) $$f ; done
+
+check-latex:
+	@echo
+	@echo "===================== begin LaTeX test ======================="
+	@echo
+	@if test \( "xx$(LATEX)" = "xx" \) -o \( "xx$(BIBTEX)" = "xx" \) ; \
+	then \
+		echo "$@ skipped: missing LaTeX and/or BibTeX" ; \
+	else \
+		cd test ; \
+		echo "The following checks should produce no output other than their names." ; \
+		echo ; \
+		for f in $(CHECK-LATEX) ; \
+		do \
+			b=`basename $$f .ltx` ; \
+			optfile=$$b.opt ; \
+			echo $$b `$(CAT) $$optfile` ; \
+			$(BIBCLEAN) $(BIBCLEANFLAGS) `$(CAT) $$optfile` $$b.bin > $$b.out 2> $$b.err ; \
+			$(CP) $$b.out $$b.bib ; \
+			$(LATEX) $$b.ltx >/dev/null 2>/dev/null ; \
+			$(BIBTEX) $$b 1>/dev/null ; \
+			$(TEST) -f $$b.blg && $(FIXBLG) $$b.blg > $$b.tmp && $(MV) $$b.tmp $$b.blg ; \
+			$(RM) $$b.aux $$b.bib $$b.log ; \
+			$(DIFF) okay/$$b.bbl $$b.bbl ; \
+			$(CMP) -s okay/$$b.bbl $$b.bbl 2>/dev/null && $(RM) $$b.bbl ; \
+			$(DIFF) okay/$$b.blg $$b.blg ; \
+			$(CMP) -s okay/$$b.blg $$b.blg 2>/dev/null && $(RM) $$b.blg ; \
+			$(DIFF) okay/$$b.err $$b.err ; \
+			$(CMP) -s okay/$$b.err $$b.err 2>/dev/null && $(RM) $$b.err ; \
+			$(DIFF) okay/$$b.out $$b.out ; \
+			$(CMP) -s okay/$$b.out $$b.out 2>/dev/null && $(RM) $$b.out ; \
+		done ; \
+	fi
+	@echo
+	@echo "====================== end LaTeX test ========================"
+	@echo
+
+check-lint:
+	-$(TEST) -n "$(LINT)" && for f in $(SRC) ; do $(LINT) $(LINTFLAGS) $$f ; done
+
+check-match:	match
+	@echo
+	@echo "===================== begin match test ======================="
+	@echo
+	@cd test ; \
+	echo "The following checks should produce no output other than their names." ; \
+	echo ; \
+	for f in $(CHECK-MATCH) ; \
+	do \
+		b=`basename $$f .in` ; \
+		echo $$b ; \
+		../match < $$f >$$b.out 2>$$b.err ; \
+		$(DIFF) okay/$$b.err $$b.err ; \
+		$(CMP) -s okay/$$b.err $$b.err 2>/dev/null && $(RM) $$b.err ; \
+		$(DIFF) okay/$$b.out $$b.out ; \
+		$(CMP) -s okay/$$b.out $$b.out 2>/dev/null && $(RM) $$b.out ; \
+	done
+	@echo
+	@echo "====================== end match test ========================"
+	@echo
+
+check-rats:
+	-$(TEST) -n "$(RATS)" && for f in $(SRC) ; do $(RATS) $(RATSFLAGS) $$f ; done
+
+check-romtol:	romtol
+	@echo
+	@echo "===================== begin romtol test ======================"
+	@echo
+	@cd test ; \
+	echo "The following checks should produce no output other than their names." ; \
+	echo ; \
+	for f in $(CHECK-ROMTOL) ; \
+	do \
+		b=`basename $$f .in` ; \
+		echo $$b ; \
+		../romtol < $$f >$$b.out 2>$$b.err ; \
+		$(DIFF) okay/$$b.err $$b.err ; \
+		$(CMP) -s okay/$$b.err $$b.err 2>/dev/null && $(RM) $$b.err ; \
+		$(DIFF) okay/$$b.out $$b.out ; \
+		$(CMP) -s okay/$$b.out $$b.out 2>/dev/null && $(RM) $$b.out ; \
+	done
+	@echo
+	@echo "====================== end romtol test ======================="
+	@echo
+
+### The peculiar step using tr to prepare the .aux files is needed to
+### overcome inconsistencies in the handling of backslashes by the IBM
+### RS/6000 shell.  The documented behavior in the SunOS 4.1.1 manual
+### pages is (emphasis mine):
+###     All characters enclosed between a pair of single quote marks
+###     (''), except a single quote, are quoted by the shell.  BACKSLASH
+###     HAS NO SPECIAL MEANING INSIDE A PAIR OF SINGLE QUOTES.  A single
+###     quote may be quoted inside a pair of double quote marks (for
+###     example, "'").
+### On SunOS, HP UX, IBM 3090 AIX, NeXT Mach, and SGI IRIX, the shells
+### csh, sh, bash, and ksh agree with this.  However, on IBM RS/6000
+### AIX 3.2, backslashes in single quotes are untouched by csh, but
+### expanded by sh and ksh.  This is clearly a bug, because the IBM AIX
+### INFO system hypertext node on bsh/rsh says:
+###     All characters, except the enclosing single quotation marks, are
+###     taken literally, with any special meaning removed.
+###
+check-scribe:	bibclean
+	@echo
+	@echo "===================== begin Scribe test ======================"
+	@echo
+	@if test "xx$(BIBTEX)" = "xx" ; \
+	then \
+		echo "$@ skipped: missing BibTeX" ; \
+	else \
+		cd test ; \
+		echo "The following checks should produce no output other than their names." ; \
+		echo ; \
+		for f in $(CHECK-SCRIBE) ; \
+		do \
+			b=`basename $$f .bib` ; \
+			optfile=$$b.opt ; \
+			echo $$b `$(CAT) $$optfile` ; \
+			$(BIBCLEAN) $(BIBCLEANFLAGS) `$(CAT) $$optfile` $$f >$$b.out 2>$$b.err ; \
+			echo 'Bbibstyle{plain}NBcitation{*}NBbibdata{'$$b'}' | \
+				$(TR) BN '\134\012' >$$b.aux ; \
+			$(BIBTEX) $$b 1>/dev/null ; \
+			$(TEST) -f $$b.blg && $(FIXBLG) $$b.blg > $$b.tmp && $(MV) $$b.tmp $$b.blg ; \
+			$(RM) $$b.aux ; \
+			$(DIFF) okay/$$b.bbl $$b.bbl ; \
+			$(CMP) -s okay/$$b.bbl $$b.bbl 2>/dev/null && $(RM) $$b.bbl ; \
+			$(DIFF) okay/$$b.blg $$b.blg ; \
+			$(CMP) -s okay/$$b.blg $$b.blg 2>/dev/null && $(RM) $$b.blg ; \
+			$(DIFF) okay/$$b.err $$b.err ; \
+			$(CMP) -s okay/$$b.err $$b.err 2>/dev/null && $(RM) $$b.err ; \
+			$(DIFF) okay/$$b.out $$b.out ; \
+			$(CMP) -s okay/$$b.out $$b.out 2>/dev/null && $(RM) $$b.out ; \
+		done ; \
+	fi
+	@echo
+	@echo "====================== end Scribe test ========================"
+	@echo
+
+check-setup:	bibclean match romtol tstctype
+
+check-splint:
+	-$(TEST) -n "$(SPLINT)" && for f in $(SRC) ; do $(SPLINT) $(SPLINTFLAGS) $$f ; done
+
+check-syntax: check-antic check-cppcheck check-flawfinder check-its4 \
+	check-lint check-rats check-splint check-uno
+
+check-uno:
+	-$(TEST) -n "$(UNO)" && $(UNO) $(UNOFLAGS) $(SRC)
+
+check-version:	Makefile
+	@echo "Version number is ""'"$(VERSION)"'"
+
+clean:	clean-test
+	-$(RM) *.aux
+	-$(RM) *.bbl
+	-$(RM) *.blg
+	-$(RM) *.dvi
+	-$(RM) *.err
+	-$(RM) *.i
+	-$(RM) *.log
+	-$(RM) *.o
+	-$(RM) *.O
+	-$(RM) *~
+	-$(RM) \#*
+	-$(RM) bibclean.jar bibclean-?.??.jar
+	-$(RM) bibclean.jar-lst
+	-$(RM) bibclean.tar bibclean-?.??.tar
+	-$(RM) bibclean.tar-lst
+	-$(RM) bibclean-$(VERSION).tar
+	-$(RM) bibclean.zip bibclean-?.??.zip
+	-$(RM) bibclean.zip-lst bibclean-?.??.zip-lst
+	-$(RM) bibclean.zoo bibclean-?.??.zoo
+	-$(RM) bibclean.zoo-lst bibclean-?.??.zoo-lst
+	-$(RM) configure.tmp
+	-$(RM) core test/core
+	-$(RM) match match.lst
+	-$(RM) romtol romtol.lst
+	-$(RM) testcodn.bib
+	-$(RM) testisxn.bib
+	-$(RM) testscr2.bi2 testscr2.er2
+	-$(RM) tstctype
+	# [08-Nov-1999] Suppress subdir make to preserve distribution files
+	# -for d in $(SUBDIRS) ; do (cd $$d ; $(MAKE) clean ) ; done
+
+clean-test:
+	-$(RM) test/*.aux test/*.bbl test/*.blg test/*.err test/*.ert \
+		test/*.log test/*.out test/*.tmp
+
+clobber:	clean
+	-$(RM) $(PROGRAMS)
+	-$(RM) bibclean.hlp
+	-$(RM) bibclean.ps
+	-$(RM) bibclean.txt
+	-$(RM) install.time install-ftp.time
+	# [08-Nov-1999] Suppress subdir make to preserve distribution files
+	# -for d in $(SUBDIRS) ; do (cd $$d ; $(MAKE) clobber ) ; done
+
+dist:	bibclean.jar bibclean.tar bibclean.zip bibclean.zoo
+
+distclean: clobber
+	-$(RM) config.cache config.h config.log config.status
+	-$(RM) -r autom4te.cache
+	-$(RM) bibclean*.jar-lst bibclean*.tar-lst bibclean*.zip-lst \
+		bibclean*.zoo-lst
+	# [08-Nov-1999] Suppress subdir make to preserve distribution files
+	# -for d in $(SUBDIRS) ; do (cd $$d ; $(MAKE) distclean ) ; done
+	-$(RM) Makefile
+
+docs:	bibclean.txt bibclean.hlp bibclean.html bibclean.ps bibclean.pdf
+
+chek.i:		chek.c config.h custom.h match.h token.h typedefs.h xctype.h \
+		xstat.h xstdio.h xstring.h yesorno.h Makefile
+
+chek.o:		chek.c config.h custom.h match.h token.h typedefs.h xctype.h \
+		xstat.h xstdio.h xstring.h yesorno.h
+
+do.i:           do.c ch.h config.h custom.h delete.h keybrd.h match.h \
+		pattern.h token.h toklst.h typedefs.h xctype.h xstdbool.h \
+		xstdio.h xstdlib.h xstring.h xunistd.h yesorno.h Makefile
+
+do.o:           do.c ch.h config.h custom.h delete.h keybrd.h match.h \
+		pattern.h token.h toklst.h typedefs.h xctype.h xstdbool.h \
+		xstdio.h xstdlib.h xstring.h xunistd.h yesorno.h
+
+fix.i:		fix.c config.h custom.h match.h token.h typedefs.h xctype.h \
+		xstring.h yesorno.h Makefile
+
+fix.o:		fix.c config.h custom.h match.h token.h typedefs.h xctype.h \
+		xstring.h yesorno.h
+
+fndfil.i:       fndfil.c config.h custom.h typedefs.h xctype.h xpwd.h \
+		xstdbool.h xstdio.h xstdlib.h xstring.h xunistd.h Makefile
+
+fndfil.o:       fndfil.c config.h custom.h typedefs.h xctype.h xpwd.h \
+		xstdbool.h xstdio.h xstdlib.h xstring.h xunistd.h
+
+isbn.i:         isbn.c ch.h config.h custom.h isbn.h isbn.tbl xctype.h \
+		xstdbool.h xstdio.h xstdlib.h xstring.h yesorno.h Makefile
+
+isbn.o:         isbn.c ch.h config.h custom.h isbn.h isbn.tbl xctype.h \
+		xstdbool.h xstdio.h xstdlib.h xstring.h yesorno.h
+
+keybrd.i:	ch.h config.h custom.h xstdio.h xstring.h xunistd.h \
+		yesorno.h Makefile
+
+keybrd.o:	keybrd.c ch.h config.h custom.h xctype.h xstdio.h xstring.h \
+		xunistd.h yesorno.h
+
+### Build a test program for match()
+match$(EXEEXT):	match.c romtol.o
+	-$(RM) match.O
+	if $(TEST) -f match.o ; then $(MV) match.o match.O ; fi
+	-$(RM) match.o
+	$(CC) -I. -I$(srcdir) $(DEFS) $(CPPFLAGS) $(CFLAGS) -DTEST -o $@ \
+		match.c romtol.o $(LDFLAGS) $(LIBS)
+	-$(RM) match.o
+	if $(TEST) -f match.O ; then $(MV) match.O match.o ; fi
+
+match.i:        match.c config.h custom.h match.h xctype.h xstdbool.h \
+		xstdio.h xstdlib.h xstring.h yesorno.h Makefile
+
+match.o:        match.c config.h custom.h match.h xctype.h xstdbool.h \
+		xstdio.h xstdlib.h xstring.h yesorno.h
+
+mostlyclean:	clean
+	# [08-Nov-1999] Suppress subdir make to preserve distribution files
+	# -for d in $(SUBDIRS) ; do (cd $$d ; $(MAKE) mostlyclean ) ; done
+
+option.i:       option.c bibclean.h ch.h config.h custom.h isbn.h match.h \
+		typedefs.h xstdbool.h xstdio.h xstdlib.h xstring.h yesorno.h \
+		Makefile
+
+### When HOST, USER, __DATE__, and __TIME__ are available,
+### bibclean preserves them for its version output
+option.o:       option.c bibclean.h ch.h config.h custom.h isbn.h match.h \
+		typedefs.h xstdbool.h xstdio.h xstdlib.h xstring.h yesorno.h
+	$(CC) -I. -I$(srcdir) $(CFLAGS) -c -DHOST=\"$(HOST)\" -DUSER=\"$(USER)\" option.c
+
+### Build a test program for romtol()
+romtol$(EXEEXT):	romtol.c
+	-$(RM) romtol.O
+	if $(TEST) -f romtol.o ; then $(MV) romtol.o romtol.O ; fi
+	-$(RM) romtol.o
+	$(CC) -I. -I$(srcdir) $(DEFS) $(CPPFLAGS) $(CFLAGS) -DTEST -o $@ \
+		romtol.c $(LDFLAGS) $(LIBS)
+	-$(RM) romtol.o
+	if $(TEST) -f romtol.O ; then $(MV) romtol.O romtol.o ; fi
+
+romtol.i:       romtol.c config.h custom.h xctype.h xstring.h xstdbool.h \
+		xstdio.h xstdlib.h Makefile
+
+romtol.o:       romtol.c config.h custom.h xctype.h xstring.h xstdbool.h \
+		xstdio.h xstdlib.h
+
+splint:		splint.log
+
+splint.log:	$(SRC) *.h Makefile
+	-$(SPLINT) $(SPLINTFLAGS) $(SRC) > $@
+
+strist.i:	strist.c config.h custom.h xctype.h xstdio.h xstring.h Makefile
+
+strist.o:	strist.c config.h custom.h xctype.h xstdio.h xstring.h
+
+strtol.i:       strtol.c config.h custom.h xctype.h xstdbool.h xstdio.h \
+		xstdlib.h xstring.h Makefile
+
+strtol.o:       strtol.c config.h custom.h xctype.h xstdbool.h xstdio.h \
+		xstdlib.h xstring.h
+
+### Subdirectory makes needed for distribution file creation
+subdist:
+	-for d in $(SUBDIRS) ; do (cd $$d ; $(MAKE) ) ; done
+
+tstctype$(EXEEXT):	tstctype.c
+	$(CC) $(CFLAGS) -o $@ $? $(LDFLAGS) $(LIBS)
+
+### ====================================================================
+### Additional targets required by GNU Coding standards
+
+Makefile: Makefile.in config.status
+	./config.status
+
+config.status: configure
+	$(srcdir)/configure --srcdir=$(srcdir) --no-create --config-cache
+
+configure reconfigure: configure.in configure.sed
+	cd $(srcdir); $(AUTOCONF) ; $(AUTOHEADER)
+### Apply needed fixup for C++ with configure
+	$(MV) configure configure.tmp
+	$(SED) -f configure.sed <configure.tmp >configure
+	-$(RM) configure.tmp
+	$(CHMOD) +x configure
+
+maintainer-clean: distclean
+	@echo "This command is intended for maintainers to use;"
+	@echo "it deletes files that may require special tools to rebuild."
+	-$(CHMOD) u+w bibclean.html
+	-$(RM) bibclean.html
+	-$(RM) bibclean.pdf
+	-$(RM) TAGS
+	-$(RM) configure config.hin
+	# [08-Nov-1999] Suppress subdir make to preserve distribution files
+	# -for d in $(SUBDIRS) ; do (cd $$d ; $(MAKE) maintainer-clean ) ; done
+
+TAGS:	Makefile $(TAGS-FILES)
+	cd $(srcdir); $(ETAGS) $(TAGS-FILES)
+
+### ====================================================================
+
+install:	install.time
+
+install.time:	install-exe install-ini install-man
+	$(TOUCH) install.time
+
+install-exe:	bibclean uninstall-exe
+	if $(TEST) -f $(bindir)/bibclean ; \
+	then \
+		$(MV) $(bindir)/bibclean $(bindir)/bibclean.old ; \
+	fi
+	-$(RM) $(bindir)/bibclean-$(VERSION)
+	$(CP) bibclean $(bindir)/bibclean
+	-$(STRIP) $(bindir)/bibclean
+	$(LN) $(bindir)/bibclean $(bindir)/bibclean-$(VERSION)
+	$(CHMOD) 775 $(bindir)/bibclean
+
+### Although it is generally considered bad form to install
+### initialization files in the same location as executable files
+### (mostly because they confuse directory listings), we make an
+### exception for bibclean because (a) the files are, on UNIX, `hidden'
+### (by their leading dot), (b) doing so avoids the need for yet
+### another hard-coded configuration directory, or else another search path,
+### and (c) search paths are more flexible than fixed configuration-file
+### directories.
+install-ini:	 uninstall-ini
+	$(CP) bibclean.ini $(bindir)/.bibcleanrc
+	$(CHMOD) 664 $(bindir)/.bibcleanrc
+	$(CP) bibclean.key $(bindir)/.bibclean.key
+	$(CHMOD) 664 $(bindir)/.bibclean.key
+	$(CP) bibclean.isbn $(bindir)/.bibclean.isbn
+	$(CHMOD) 664 $(bindir)/.bibclean.isbn
+
+install-man:	bibclean.man uninstall-man
+	if $(TEST) -f $(mandir)/bibclean.$(manext) ; \
+	then \
+		$(MV) $(mandir)/bibclean.$(manext) $(mandir)/bibclean.old.$(manext) ; \
+	fi
+	$(CP) bibclean.man $(mandir)/bibclean.$(manext)
+	-$(RM) $(mandir)/../cat$(manext)/bibclean.$(manext)
+	-$(RM) $(mandir)/bibclean-$(VERSION).$(manext)
+	$(LN) $(mandir)/bibclean.$(manext) $(mandir)/bibclean-$(VERSION).$(manext)
+	$(CHMOD) 664 $(mandir)/bibclean.$(manext)
+
+install-ftp:	uninstall-ftp install-ftp.time
+
+install-ftp.time:	dist
+	$(TAR) tvf bibclean-$(VERSION).tar >$(FTPDIR)/bibclean-$(VERSION).tar-lst
+	$(GZIP) <bibclean-$(VERSION).tar \
+		>$(FTPDIR)/bibclean-$(VERSION).tar.gz
+	$(CP) bibclean-$(VERSION).jar $(FTPDIR)
+	$(JAR) tvf bibclean-$(VERSION).jar \
+		2>$(FTPDIR)/bibclean-$(VERSION).jar-lst
+	$(CP) bibclean-$(VERSION).zip $(FTPDIR)
+	$(CP) bibclean-$(VERSION).zip-lst $(FTPDIR)
+	$(CP) bibclean-$(VERSION).zoo $(FTPDIR)
+	$(CP) bibclean-$(VERSION).zoo-lst $(FTPDIR)
+	$(LS) -l $(FTPDIR)/bibclean*
+	$(DATE) >install-ftp.time
+
+lint:
+	$(LINT) $(LINTFLAGS) $(SRC)
+
+uninstall:	uninstall-exe uninstall-ini uninstall-man
+	-$(RM) install.time
+
+uninstall-exe:
+	-$(RM) $(bindir)/bibclean $(bindir)/bibclean-$(VERSION)
+
+uninstall-ini:
+	-$(RM) $(bindir)/.bibcleanrc \
+		$(bindir)/.bibclean.isbn \
+		$(bindir)/.bibclean.key
+
+uninstall-man:
+	-$(RM) $(mandir)/bibclean.$(manext) \
+		$(mandir)/bibclean-$(VERSION).$(manext) \
+		$(mandir)/../cat$(manext)/bibclean.$(manext) \
+		$(mandir)/../cat$(manext)/bibclean-$(VERSION).$(manext)
+
+uninstall-ftp:
+	-$(RM) $(FTPDIR)/bibclean-$(VERSION).tar
+	-$(RM) $(FTPDIR)/bibclean-$(VERSION).tar-lst
+	-$(RM) $(FTPDIR)/bibclean-$(VERSION).zip
+	-$(RM) $(FTPDIR)/bibclean-$(VERSION).zip-lst
+	-$(RM) $(FTPDIR)/bibclean-$(VERSION).zoo
+	-$(RM) $(FTPDIR)/bibclean-$(VERSION).zoo-lst
+	-$(RM) install-ftp.time
+
+### Prevent GNU make v3 from overflowing arg limit on SysV.
+.NOEXPORT:

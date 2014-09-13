@@ -1,0 +1,9 @@
+%% testoptp.bib:22:Unexpected DOI in URL value ``"http://dx.doi.org/10.1007/978-3-642-25704-9_1"'': move to separate DOI = "..." key/value in this entry.
+%% testoptp.bib:22:Possible DOI in URL value ``"http://dx.doi.org/10.1007/978-3-642-25704-9_1"'': if so, move to separate DOI = "..." key/value in this entry.
+%% testoptp.bib:30:Unexpected DOI in URL value ``"http://dx.doi.org/10.1007/978-3-642-25704-9"'': move to separate DOI = "..." key/value in this entry.
+%% testoptp.bib:30:Possible DOI in URL value ``"http://dx.doi.org/10.1007/978-3-642-25704-9"'': if so, move to separate DOI = "..." key/value in this entry.
+%% testoptp.bib:34:Unexpected space or list separator in DOI value ``"http://dx.doi.org/10.1002/spe.2105; http://dx.doi.org/10.1002/spe.2106"''.
+%% testoptp.bib:38:Unexpected DOI in URL value ``"http://dx.doi.org/10.1002/spe.2105; http://dx.doi.org/10.1002/spe.2106"'': move to separate DOI = "..." key/value in this entry.
+%% testoptp.bib:38:Possible DOI in URL value ``"http://dx.doi.org/10.1002/spe.2105; http://dx.doi.org/10.1002/spe.2106"'': if so, move to separate DOI = "..." key/value in this entry.
+%% testoptp.bib:42:Unexpected protocol://... in URL value ``"rss://rss.example.com/web-feed/rich-site-summary"'': normally ftp://... or http://....
+%% testoptp.bib:46:Expected protocol://... in URL value ``%v%''.
