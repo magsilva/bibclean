@@ -6,8 +6,6 @@
 #include "xstring.h"
 #include "xunistd.h"
 
-RCSID("$Id: do.c,v 1.12 2014/04/03 18:02:49 beebe Exp beebe $")
-
 #include "ch.h"
 #include "delete.h"
 #include "keybrd.h"
@@ -214,8 +212,7 @@ void		do_keyword_file ARGS((/*@null@*/ const char *pathlist, /*@null@*/ const ch
 void		do_other ARGS((void));
 void		do_print_keyword_table ARGS((void));
 
-extern YESorNO	apply_function ARGS((const char *option_,
-		    OPTION_FUNCTION_ENTRY table_[]));
+extern YESorNO	apply_function ARGS((const char *option_, OPTION_FUNCTION_ENTRY table_[]));
 extern void	check_length ARGS((size_t n_));
 extern void	check_key ARGS((void));
 extern void	check_chapter ARGS((void));
@@ -264,21 +261,16 @@ extern void	put_back ARGS((int c_));
 extern FILE	*tfopen ARGS((const char *filename_, const char *mode_));
 extern void	warning ARGS((const char *msg_));
 
-YESorNO		German_style = NO;		/* YES: " inside braced string
-						value obeys german.sty style */
+YESorNO		German_style = NO;		/* YES: " inside braced string value obeys german.sty style */
 
 static long	space_count = 0L; /* count of spaces in do_optional_space()  */
 static char	Scribe_close_delims[] = "}])>'\"`";
 static char	Scribe_open_delims[]  = "{[(<'\"`";
 
 static void	add_keyword ARGS((const char *the_old, const char *the_new));
-static void	add_one_keyword ARGS((const char *the_old, const char *the_new,
-				      size_t where));
-static void	add_one_pattern ARGS((PATTERN_TABLE *pt_,
-		    const char *fieldname_, const char *pattern_,
-		    /*@null@*/ const char *msg_));
-static void	add_pattern ARGS((const char *fieldname_, const char *pattern_,
-		    /*@null@*/ const char *msg_));
+static void	add_one_keyword ARGS((const char *the_old, const char *the_new, size_t where));
+static void	add_one_pattern ARGS((PATTERN_TABLE *pt_, const char *fieldname_, const char *pattern_, /*@null@*/ const char *msg_));
+static void	add_pattern ARGS((const char *fieldname_, const char *pattern_, /*@null@*/ const char *msg_));
 static void	append_value ARGS((const char *s_));
 static void	do_at ARGS((void));
 static void	do_BibTeX_entry ARGS((void));
@@ -327,8 +319,7 @@ static char	*get_Scribe_delimited_string ARGS((void));
 static char	*get_Scribe_identifier_string ARGS((void));
 static char	*get_Scribe_string ARGS((void));
 static char	*get_simple_string ARGS((void));
-/*@null@*/ static char	*get_token ARGS((/*@null@*/ char *s_, char **nextp_,
-		    const char *terminators_));
+/*@null@*/ static char	*get_token ARGS((/*@null@*/ char *s_, char **nextp_, const char *terminators_));
 static void	new_entry ARGS((void));
 static void	new_io_pair ARGS((IO_PAIR *pair_));
 static void	new_position ARGS((POSITION *position_));
@@ -340,21 +331,13 @@ static void	out_field ARGS((void));
 static void	out_open_brace ARGS((void));
 static void	out_other ARGS((const char *s_));
 static void	out_value ARGS((void));
-static void	prt_pattern ARGS((const char *fieldname_, /*@null@*/ const char *pattern_,
-		    /*@null@*/ const char *msg_));
+static void	prt_pattern ARGS((const char *fieldname_, /*@null@*/ const char *pattern_, /*@null@*/ const char *msg_));
 static void	put_back_string ARGS((const char *s_));
 static void	trim_value ARGS((void));
 
 
-#if defined(HAVE_STDC)
 static void
 add_keyword(const char *the_old, const char *the_new)
-#else /* K&R style */
-static void
-add_keyword(the_old, the_new)
-const char *the_old;
-const char *the_new;
-#endif
 {
     /* Search the keyword_range[] table circularly from the last search
        position for the next non-empty slot matching the_old, and
@@ -429,16 +412,8 @@ const char *the_new;
 }
 
 
-#if defined(HAVE_STDC)
 static void
 add_one_keyword(const char *the_old, const char *the_new, size_t where)
-#else /* K&R style */
-static void
-add_one_keyword(the_old, the_new, where)
-const char *the_old;
-const char *the_new;
-size_t where;
-#endif
 {	/* add an entry at slot where, without bounds checking */
 
     field_pair[where].old_name = (the_old == (const char *)NULL) ? the_old :
@@ -448,18 +423,9 @@ size_t where;
 }
 
 
-#if defined(HAVE_STDC)
 static void
 add_one_pattern(PATTERN_TABLE *pt, const char *fieldname, const char *pattern,
     /*@null@*/ const char *message)
-#else /* K&R style */
-static void
-add_one_pattern(pt,fieldname,pattern,message)
-PATTERN_TABLE *pt;
-const char *fieldname;
-const char *pattern;
-/*@null@*/ const char *message;
-#endif
 {
     if (STREQUAL(pattern,""))		/* then clear pattern table */
 	free_pattern_table_entries(pt);
@@ -502,16 +468,8 @@ const char *pattern;
 }
 
 
-#if defined(HAVE_STDC)
 static void
 add_pattern(const char *fieldname, const char *pattern, /*@null@*/ const char *message)
-#else /* K&R style */
-static void
-add_pattern(fieldname,pattern,message)
-const char *fieldname;
-const char *pattern;
-/*@null@*/ const char *message;
-#endif
 {
     int k;				/* index into pattern_names[] */
 
@@ -551,14 +509,8 @@ const char *pattern;
 }
 
 
-#if defined(HAVE_STDC)
 static void
 append_value(const char *s)
-#else /* K&R style */
-static void
-append_value(s)
-const char *s;
-#endif
 {
     size_t n_cv = strlen(current_value);
     size_t n_s = strlen(s);
@@ -929,14 +881,8 @@ do_equals(VOID)			/* process = in field = value */
 }
 
 
-#if defined(HAVE_STDC)
 static void
 do_escapes(char *s)
-#else /* K&R style */
-static void
-do_escapes(s)
-char *s;
-#endif
 {					/* reduce escape sequences in s[] */
     int base;				/* number base for strtol() */
     char *endptr;			/* pointer returned by strtol() */
@@ -987,14 +933,8 @@ char *s;
 }
 
 
-#if defined(HAVE_STDC)
 static void
 do_fileinit(const char *bibfilename)	/* process one initialization file */
-#else /* K&R style */
-static void
-do_fileinit(bibfilename)		/* process one initialization file */
-const char *bibfilename;
-#endif
 {
     char *p;
     const char *ext;
@@ -1103,15 +1043,8 @@ do_field_value_pair(VOID)		/* process field = value pair */
 }
 
 
-#if defined(HAVE_STDC)
 void
 do_files(int argc, char *argv[])
-#else /* K&R style */
-void
-do_files(argc,argv)
-int argc;
-char *argv[];
-#endif
 {
     FILE *fp;
     int k;				/* index into argv[] */
@@ -1255,15 +1188,8 @@ entry ``@%e{%k,''");
 }
 
 
-#if defined(HAVE_STDC)
 void
 do_initfile(/*@null@*/ const char *pathlist, /*@null@*/ const char *name)
-#else /* K&R style */
-void
-do_initfile(pathlist,name)
-/*@null@*/ const char *pathlist;
-/*@null@*/ const char *name;
-#endif
 {
 
     FILE *fp;
@@ -1316,15 +1242,8 @@ do_key_name(VOID)		/* process BibTeX citation key */
 }
 
 
-#if defined(HAVE_STDC)
 void
 do_keyword_file(/*@null@*/ const char *pathlist, /*@null@*/ const char *name)
-#else /* K&R style */
-void
-do_keyword_file(pathlist,name)
-/*@null@*/ const char *pathlist;
-/*@null@*/ const char *name;
-#endif
 {
     FILE *fp;
     char *p;
@@ -1381,14 +1300,8 @@ do_keyword_file(pathlist,name)
 }
 
 
-#if defined(HAVE_STDC)
 static void
 do_new_pattern(char *s)
-#else /* K&R style */
-static void
-do_new_pattern(s)
-char *s;
-#endif
 {
     char *field;
     char *p;
@@ -1478,14 +1391,8 @@ do_newline(VOID)
 }
 
 
-#if defined(HAVE_STDC)
 static void
 do_one_file(FILE *fp)		/* process one input file on fp */
-#else /* K&R style */
-static void
-do_one_file(fp)			/* process one input file on fp */
-FILE *fp;
-#endif
 {
     fpin = fp;			/* save file pointer globally for get_char() */
 
@@ -2028,14 +1935,8 @@ do_Scribe_value(VOID)			/* process Scribe value string */
 }
 
 
-#if defined(HAVE_STDC)
 static void
 do_single_arg(char *s)
-#else /* K&R style */
-static void
-do_single_arg(s)
-char *s;
-#endif
 {					/* expect -option or -option value */
     char *temp_argv[4];			/* "program" "-option" "value" NULL */
     int temp_argc;			/* temporary argument count */
@@ -2823,16 +2724,8 @@ get_simple_string(VOID)		/* read simple BibTeX string */
 
 
 /*@null@*/
-#if defined(HAVE_STDC)
 static char *
 get_token(/*@null@*/ char *s, char **nextp, const char *terminators)
-#else /* K&R style */
-static char *
-get_token(s,nextp,terminators)
-/*@null@*/ char *s;
-char **nextp;
-const char *terminators;
-#endif
 {
     char *t;
     char *token;
@@ -2917,14 +2810,8 @@ new_entry(VOID)			/* initialize for new BibTeX @name{...} */
 }
 
 
-#if defined(HAVE_STDC)
 static void
 new_io_pair(IO_PAIR *pair)
-#else /* K&R style */
-static void
-new_io_pair(pair)
-IO_PAIR *pair;
-#endif
 {
     new_position(&pair->input);
     new_position(&pair->output);
@@ -3046,14 +2933,8 @@ out_open_brace(VOID)
 }
 
 
-#if defined(HAVE_STDC)
 static void
 out_other(const char *s)	/* output a non-BibTeX string */
-#else /* K&R style */
-static void
-out_other(s)
-const char *s;
-#endif
 {
     if (prettyprint == YES)
 	out_s(s);
@@ -3126,12 +3007,12 @@ out_value(VOID)
 
 	save_brace_math = brace_math;
 	brace_math = NO;
-	(void)apply_function(current_field,fixes);
+	apply_function(current_field, fixes);
 	brace_math = save_brace_math;	
 
 	if ((check_values == YES) && !STREQUAL(current_value,"\"\""))
 	{
-	    if (apply_function(current_field,checks) == NO)
+	    if (apply_function(current_field, checks) == NO)
 		check_other();
 	}
 	if ((remove_OPT_prefixes == YES) &&
@@ -3140,16 +3021,12 @@ out_value(VOID)
 	    (strlen(current_value) > (size_t)2)) /* 2, not 0: quotes are included! */
 	{
 	    out_c(DELETE_LINE);
-	    Memmove(current_field,&current_field[3],
-		    (size_t)(strlen(current_field)-3+1));
-				/* reduce "OPTname" to "name" */
+	    Memmove(current_field,&current_field[3], (size_t)(strlen(current_field)-3+1)); /* reduce "OPTname" to "name" */
 	    out_field();
 	    out_equals();
-	    out_spaces((int)(value_indentation -
-			     the_file.output.column_position));
+	    out_spaces((int)(value_indentation - the_file.output.column_position));
 	}
-	else if ((delete_empty_values == YES) &&
-		 STREQUAL(current_value,"\"\""))
+	else if ((delete_empty_values == YES) && STREQUAL(current_value,"\"\"")) 
 	{			/* 2, not 0, because quotes are included! */
 	    out_c(DELETE_LINE);
 	    discard_next_comma = YES;
@@ -3161,16 +3038,8 @@ out_value(VOID)
 }
 
 
-#if defined(HAVE_STDC)
 static void
 prt_pattern(const char *fieldname, /*@null@*/ const char *pattern, /*@null@*/ const char *message)
-#else /* K&R style */
-static void
-prt_pattern(fieldname,pattern,message)
-const char *fieldname;
-const char *pattern;
-const char *message;
-#endif
 {
     if (print_patterns == YES)
     {
@@ -3190,14 +3059,8 @@ const char *message;
 }
 
 
-#if defined(HAVE_STDC)
 static void
 put_back_string(const char *s)	/* put string value back onto input stream */
-#else /* K&R style */
-static void
-put_back_string(s)	/* put string value back onto input stream */
-const char *s;
-#endif
 {
     const char *p;
 
@@ -3206,9 +3069,13 @@ const char *s;
 }
 
 
+
+/**
+ * Trim leading and trailing space from current_value[]
+ */
 static void
 trim_value(VOID)
-{		/* trim leading and trailing space from current_value[] */
+{
     size_t k;
     size_t n = strlen(current_value);
 

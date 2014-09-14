@@ -3,8 +3,6 @@
 #include "xctype.h"
 #include "xstring.h"
 
-RCSID("$Id: fix.c,v 1.10 2014/04/03 18:03:13 beebe Exp beebe $")
-
 #include "yesorno.h"
 #include "token.h"
 #include "match.h"
@@ -1662,14 +1660,8 @@ fix_pages(VOID)
 }
 
 
-#if defined(HAVE_STDC)
 static char *
 fix_periods(char *author)
-#else /* K&R style */
-static char *
-fix_periods(author)
-char *author;
-#endif
 {
     int b_level;			/* brace level */
     size_t a;				/* index in author[] */
@@ -2210,15 +2202,8 @@ fix_title(VOID)				/* protect upper-case acronyms */
 
 
 /*@null@*/
-#if defined(HAVE_STDC)
 static const char *
 month_token(/*@null@*/ const char *s, size_t *p_len)
-#else /* K&R style */
-static const char *
-month_token(s, p_len)
-/*@null@*/ const char *s;
-size_t *p_len;
-#endif
 {
    /*******************************************************************
     ** Return pointer to next token in s[], with its length in *p_len if
@@ -2311,14 +2296,8 @@ size_t *p_len;
     return ((*p_len == 0) ? (const char*)NULL : token);
 }
 
-#if defined(HAVE_STDC)
 static size_t
 squeeze_space(/*@null@*/ char *s)
-#else /* K&R style */
-static size_t
-squeeze_space(s)
-/*@null@*/ char *s;
-#endif
 {   /* squeeze superfluous space from s[], in place, and return new length */
     size_t m;
 
@@ -2345,15 +2324,8 @@ squeeze_space(s)
     return (m);
 }
 
-#if defined(HAVE_STDC)
 void
 store_space(char *s, size_t *pk)
-#else  /* K&R style */
-void
-store_space(s, pk)
-char *s
-size_t *pk;
-#endif
 {   /* remove any trailing space, then store a space */
     while ( ((*pk) > 0) && Isspace(s[(*pk) - 1]) )
 	(*pk)--;

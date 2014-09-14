@@ -10,27 +10,15 @@
 #include "xstring.h"
 #include "xstdlib.h"
 
-RCSID("$Id: strtol.c,v 1.3 2003/08/22 23:24:55 beebe Exp beebe $")
-
 
 #define IN(l,a,r) (((l) <= (a)) && ((a) <= (r)))
 
-/* This is a simple implementation of Standard C strtol().  A library
-version should be programmed with more care. */
-
+/*
+ * This is a simple implementation of Standard C strtol().  A library
+ * version should be programmed with more care.
+ */
 long
-#if defined(HAVE_STDC)
-strtol(
-const char  *nptr,
-/*@null@*/ char** endptr,
-int base
-)
-#else /* NOT defined(HAVE_STDC) */
-strtol(nptr,endptr,base)
-const char  *nptr;
-/*@null@*/ char** endptr;
-int base;
-#endif /* defined(HAVE_STDC) */
+strtol(const char  *nptr, /*@null@*/ char** endptr, int base)
 {
     int			c;		/* current character value */
     int			digit;		/* digit value */
@@ -77,8 +65,7 @@ int base;
     }
 
     /* eliminate optional "0x" or "0X" prefix */
-
-    if (    (base == 16) &&
+    if ((base == 16) &&
 	(*q == '0') &&
 	((*(q+1) == 'x') || (*(q+1) == 'X')) )
 	q += 2;
@@ -204,16 +191,10 @@ results in different bases are echoed to stdout.
 
 
 int
-#if defined(HAVE_STDC)
 main(
 int			argc,
 char			*argv[]
 )
-#else /* NOT defined(HAVE_STDC) */
-main(argc,argv)
-int			argc;
-char			*argv[];
-#endif /* defined(HAVE_STDC) */
 {
     char		s[25];
     char		*endptr;

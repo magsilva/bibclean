@@ -14,8 +14,6 @@
 #include "xstring.h"
 #include "xunistd.h"
 
-RCSID("$Id: keybrd.c,v 1.10 2014/04/03 18:05:53 beebe Exp beebe $")
-
 #include "ch.h"
 #include "keybrd.h"
 #include "yesorno.h"
@@ -25,13 +23,11 @@ RCSID("$Id: keybrd.c,v 1.10 2014/04/03 18:05:53 beebe Exp beebe $")
 #if defined(MAX)
 #undef MAX
 #endif
-
 #define MAX(a,b)	(((a) > (b)) ? (a) : (b))
 
 #ifdef MIN
 #undef MIN
 #endif /* MIN */
-
 #define	MIN(a,b)	((a) < (b) ? (a) : (b))
 
 #undef MAX_CHAR
@@ -45,15 +41,13 @@ extern FILE	*tfopen ARGS((const char *filename_, const char *mode_));
 
 static void	beep ARGS((FILE *fpout));
 
-int		do_more ARGS((FILE *fpout_, int line_, int pause_after_,
-		    const char *lines[]));
+int		do_more ARGS((FILE *fpout_, int line_, int pause_after_, const char *lines[]));
 
-static int	do_search ARGS((FILE *fpout_, int code_, int line_number_,
-				int pause_after_, const char *lines_[]));
+static int	do_search ARGS((FILE *fpout_, int code_, int line_number_, int pause_after_, const char *lines_[]));
 
 static void	erase_characters ARGS((FILE *fpout_, int how_many_));
 
-static keyboard_code_t kbcode ARGS((void));
+static          keyboard_code_t kbcode ARGS((void));
 
 static int	kbget ARGS((void));
 
@@ -61,40 +55,20 @@ static void	kbinitmap ARGS((void));
 
 
 static void
-#if defined (HAVE_STDC)
 beep(FILE *fpout)
-#else
-beep(fpout)
-FILE *fpout;
-#endif
 {
     (void)fputc(CH_BELL,fpout);
     (void)fflush(fpout);
 }
 
 
-#if defined(HAVE_STDC)
 int
 do_more(FILE *fpout,int line_number, int pause_after, const char *lines[])
-#else /* K&R style */
-int
-do_more(fpout, line_number, pause_after, lines)
-FILE *fpout;
-int line_number;
-int pause_after;
-const char *lines[];
-#endif
 {
     int code;
 
-#if OS_PCDOS
-#define MORE_HELP \
-"More? f)orwd b)ackwd e)nd q)uit r)efresh t)op \\/)search \030 \031 PgUp \
-PgDn Home End\n\r"
-#else /* NOT OS_PCDOS */
 #define MORE_HELP \
 "More? f)orward b)ackward d)own e)nd q)uit r)efresh t)op u)p \\/)search\n\r"
-#endif /* OS_PCDOS */
 
     (void)fputs(MORE_HELP,fpout);
     (void)fflush(fpout);		/* make screen up-to-date */
@@ -168,16 +142,7 @@ PgDn Home End\n\r"
 
 
 static int
-#if defined(HAVE_STDC)
 do_search(FILE *fpout, int code, int line_number, int pause_after, const char *lines[])
-#else
-do_search(fpout, code, line_number, pause_after, lines)
-FILE *fpout;
-int code;
-int line_number;
-int pause_after;
-const char *lines[];
-#endif
 {
     int c;
     int k;
@@ -294,13 +259,7 @@ const char *lines[];
 
 
 static void
-#if defined(HAVE_STDC)
 erase_characters(FILE *fpout, int how_many)
-#else
-erase_characters(fpout, how_many)
-FILE *fpout;
-int how_many;
-#endif
 {
     for ( ; how_many > 0; --how_many)
     {
@@ -311,82 +270,6 @@ int how_many;
     (void)fflush(fpout);
 }
 
-
-#if OS_PCDOS
-
-#if defined(HAVE_CONIO_H)
-#include <conio.h>		/* needed for getch() declaration */
-#endif
-
-int
-get_screen_lines(VOID)
-{
-    return (SCREEN_LINES);
-}
-
-
-void
-kbclose(VOID)
-{
-}
-
-
-static keyboard_code_t
-kbcode(VOID)
-{
-    int c;
-
-    c = kbget();			/* get from keyboard without echo */
-    if ((c == 0) || (c == 0xe0))	/* then have IBM PC function key */
-    {
-	c = kbget();			/* function key code */
-	switch (c)			/* convert key code to character */
-	{
-	case 71:			/* HOME */
-	    return (KEYBOARD_HOME);
-
-	case 72:			/* UP arrow */
-	    return (KEYBOARD_UP);
-
-	case 73:			/* PGUP */
-	    return (KEYBOARD_PGUP);
-
-	case 79:			/* END */
-	    return (KEYBOARD_END);
-
-	case 80:			/* DOWN arrow */
-	    return (KEYBOARD_DOWN);
-
-	case 81:			/* PGDN */
-	    return (KEYBOARD_PGDN);
-
-	default:
-	    return (KEYBOARD_UNKNOWN);
-	}
-    }
-    else if (c == EOF)
-	return (KEYBOARD_EOF);
-    else
-	return (keymap[(unsigned)c]);
-}
-
-
-static int
-kbget(VOID)
-{
-    return (getch());
-}
-
-
-void
-kbopen(VOID)
-{
-    kbinitmap();
-}
-#endif /* OS_PCDOS */
-
-
-#if OS_UNIX
 
 static void	reset_terminal ARGS((void));
 static void	set_terminal ARGS((void));
@@ -442,9 +325,6 @@ kbget(VOID)
 {
     if (fptty != (FILE*)NULL)
     {
-#if 0	/* fflush() discards typeahead -- no good for search string input */
-	(void)fflush(fptty);
-#endif
 	return (getc(fptty));
     }
     else
@@ -604,135 +484,6 @@ get_screen_lines(VOID)	/* this must come after terminal header includes! */
 
     return (SCREEN_LINES);
 }
-#endif /* OS_UNIX */
-
-
-#if OS_VAXVMS
-
-#if defined(HAVE_SSDEF_H)
-#include <ssdef.h>
-#endif
-
-#if defined(HAVE_DESCRIP_H)
-#include <descrip.h>
-#endif
-
-#if defined(HAVE_IODEF_H)
-#include <iodef.h>
-#endif
-
-#if defined(HAVE_TTDEF_H)
-#include <ttdef.h>
-#endif
-
-#if defined(HAVE_TT2DEF_H)
-#include <tt2def.h>
-#endif
-
-#if defined(__ALPHA)
-int	sys$assign(void *desc_,int *channel_,int n1_,int n2_);
-int	sys$qiow(int, int channel_, int flags_, int n1_, int n2_, int n3_,
-		int *ret_char_, int n4_,  int n5_, int n6_, int n7_, int n8_);
-int	system(const char *s_);
-#else
-/* VAX VMS 6.1 has these header files */
-#include <starlet.h>			/* for sys$assign(), sys$qiow() */
-#endif
-
-extern int lib$screen_info ARGS((short *,short *,short *,short *,));
-					/* not defined in any system header */
-					/* file in VMS 6.x */
-
-static int status;			/* system service status */
-static int tt_channel = -1;		/* terminal channel for image QIO's */
-static int iomask;			/* QIO flag mask */
-static $DESCRIPTOR(sys_in,"TT:");	/* terminal descriptor */
-
-static struct
-{
-    unsigned char class;
-    unsigned char type;
-    unsigned short buffer_size;
-    unsigned long tt;
-    unsigned long tt2;
-} mode_buf,mode_save;
-
-#define FAILED(status) (~(status) & 1)	/* failure if LSB is 0 */
-
-int
-get_screen_lines(VOID)
-{
-    short flags;
-    short dvtype;
-    short ncols;
-    short nrows = 0;
-
-#if defined(__ALPHA) || defined(__VMS_VERSION)
-    /* I don't know what the OpenVMS replacement for lib$screen_info() is yet. */
-    /* It may be that scr$w_pagesize and scr$w_width in the struct scrdef1 */
-    /* in <scrdef.h> are the values we need for nrows and ncols. */
-    ncols = 80;
-    nrows = 24;
-#else
-    (void)lib$screen_info(&flags,&dvtype,&ncols,&nrows);
-#endif
-
-    return ((int)((nrows > 0) ? nrows : SCREEN_LINES));
-}
-
-
-void
-kbclose(VOID)
-{
-#if !defined(__ALPHA)
-    (void)sys$qiow(0,tt_channel,IO$_SETMODE,0,0,0, &mode_save,12,0,0,0,0);
-#endif
-}
-
-
-keyboard_code_t
-kbcode(VOID)
-{
-    int c = kbget();
-
-    return ((c == EOF) ? KEYBOARD_EOF : keymap[(unsigned)c]);
-}
-
-
-int
-kbget(VOID)
-{
-#if defined(__ALPHA)
-    return (getchar());
-#else
-    int c;
-
-    status = sys$qiow(0,tt_channel,iomask,0,0,0,&c,1,0,0,0,0);
-
-    return ((int)(FAILED(status) ? EOF : BYTE_VAL(c)));
-#endif
-}
-
-
-void
-kbopen(VOID)
-{
-    kbinitmap();
-#if defined(__ALPHA)
-    /* assume stdin is open for now */
-#else
-    status = sys$assign(&sys_in,&tt_channel,0,0);
-    if (!FAILED(status))
-    {
-	(void)sys$qiow(0,tt_channel,IO$_SENSEMODE,0,0,0,&mode_save,12,0,0,0,0);
-	mode_buf = mode_save;
-	mode_buf.tt &= ~TT$M_WRAP;
-	(void)sys$qiow(0,tt_channel,IO$_SETMODE,0,0,0,&mode_buf,12,0,0,0,0);
-	iomask = IO$_TTYREADALL | IO$M_NOECHO;
-    }
-#endif
-}
-#endif /* OS_VAXVMS */
 
 
 static void

@@ -8,25 +8,14 @@
 #include "xctype.h"
 #include "xstring.h"
 
-RCSID("$Id: strist.c,v 1.2 2003/08/22 23:23:07 beebe Exp beebe $")
+/**
+ * Return pointer to location of sub[] in s[], ignoring letter case,
+ * else (char*)NULL.  This is a simple implementation; a library version
+ * should use a more sophisticated version (e.g. Boyer-Moore,
+ * Knuth-Morris-Pratt, hardware search).
+ */
 
-
-/* Return pointer to location of sub[] in s[], ignoring letter case,
-else (char*)NULL.  This is a simple implementation; a library version
-should use a more sophisticated version (e.g. Boyer-Moore,
-Knuth-Morris-Pratt, hardware search). */
-
-char*
-#if defined(HAVE_STDC)
-stristr(
-const char  *s,
-const char  *sub
-)
-#else /* NOT defined(HAVE_STDC) */
-stristr(s,sub)
-const char  *s;
-const char  *sub;
-#endif /* defined(HAVE_STDC) */
+char* stristr(const char  *s, const char  *sub)
 {
     size_t length;
 

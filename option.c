@@ -4,8 +4,6 @@
 #include "xstdlib.h"
 #include "xstring.h"
 
-RCSID("$Id: option.c,v 1.14 2014/04/03 18:07:03 beebe Exp beebe $")
-
 #include "ch.h"
 #include "isbn.h"
 #include "yesorno.h"
@@ -56,13 +54,11 @@ void		do_preargs ARGS((int argc_, char *argv_[]));
 
 bool		is_optionprefix ARGS((int c));
 
-extern YESorNO	apply_function ARGS((const char *option_,
-		    OPTION_FUNCTION_ENTRY table_[]));
+extern YESorNO	apply_function ARGS((const char *option_, OPTION_FUNCTION_ENTRY table_[]));
 extern void	check_inodes ARGS((void));
 extern void	do_initfile ARGS((const char *pathlist_,const char *name_));
 extern void	do_keyword_file ARGS((const char *pathlist_,const char *name_));
-extern void	out_lines ARGS((FILE *fpout_,const char *lines_[],
-		    YESorNO pausing_));
+extern void	out_lines ARGS((FILE *fpout_,const char *lines_[], YESorNO pausing_));
 extern FILE	*tfopen ARGS((const char *filename_, const char *mode_));
 extern void	warning ARGS((const char *msg_));
 
@@ -138,15 +134,8 @@ static CONST char *help_lines[] =
 };
 
 
-#if defined(HAVE_STDC)
 void
 do_args(int argc, char *argv[])
-#else /* K&R style */
-void
-do_args(argc,argv)
-int argc;
-char *argv[];
-#endif
 {
     int k;				/* index into argv[] */
 #define MSG_PREFIX	"Unrecognized option switch: "
@@ -255,15 +244,8 @@ char *argv[];
 }
 
 
-#if defined(HAVE_STDC)
 void
 do_preargs(int argc, char *argv[])
-#else /* K&R style */
-void
-do_preargs(argc,argv)
-int argc;
-char *argv[];
-#endif
 {
     int k;
 
@@ -298,31 +280,11 @@ char *argv[];
 }
 
 
-#if defined(HAVE_STDC)
 bool
 is_optionprefix(int c)
-#else /* K&R style */
-bool
-is_optionprefix(c)
-int c;
-#endif
 {
-    bool result;
-
-    result = false;
-
-#if OS_PCDOS
-    result = (((c) == (int)'-') || ((c) == (int)'/')) ? true : false;
-#endif /* OS_PCDOS */
-
-#if OS_UNIX
+    bool result = false;
     result = ((c) == (int)'-') ? true : false;
-#endif /* OS_UNIX */
-
-#if OS_VAXVMS
-    result = (((c) == (int)'-') || ((c) == (int)'/')) ? true : false;
-#endif /* OS_VAXVMS */
-
     return (result);
 }
 

@@ -109,8 +109,6 @@ Thus "{TR\slash A87}" matches the patterns "AD" and "W", and
 #include "yesorno.h"
 #include "match.h"			/* must come AFTER yesorno.h */
 
-RCSID("$Id: match.c,v 1.9 2014/04/03 18:06:25 beebe Exp beebe $")
-
 #ifndef EXIT_SUCCESS
 #define EXIT_SUCCESS 0
 #endif
@@ -139,15 +137,8 @@ static void		match_warning ARGS((const char *name,
 extern void		warning ARGS((const char *msg_));
 
 
-#if defined(HAVE_STDC)
 YESorNO
 match_pattern(const char *s, const char *pattern)
-#else /* K&R style */
-YESorNO
-match_pattern(s,pattern)
-const char *s;
-const char *pattern;
-#endif
 {
     const char *org_s;
     const char *org_pattern;
@@ -276,19 +267,9 @@ const char *pattern;
 }
 
 
-#if defined(HAVE_STDC)
 static YESorNO
 match_failure(const char *expect, const char *org_s, const char *s,
 	      const char *org_pattern, const char *pattern)
-#else /* K&R style */
-static YESorNO
-match_failure(expect,org_s,s,org_pattern,pattern)
-const char *expect;
-const char *org_s;
-const char *s;
-const char *org_pattern;
-const char *pattern;
-#endif
 {	/* maybe print a warning if -debug-match-failures was specified; always return NO */
     if (debug_match_failures == YES)
     {
@@ -308,16 +289,8 @@ const char *pattern;
 }
 
 
-#if defined(HAVE_STDC)
 static void
 match_warning(const char *name, const char *org_s, const char *s)
-#else /* K&R style */
-static void
-match_warning(name,org_s,s)
-const char *name;
-const char *org_s;
-const char *s;
-#endif
 {
     char	*msg;
 
@@ -360,14 +333,8 @@ const char *s;
 }
 
 
-#if defined(HAVE_STDC)
 static const char *
 next_s(const char *s)
-#else /* K&R style */
-static const char *
-next_s(s)
-const char *s;
-#endif
 {
     /* find next position in s, ignoring braces and ignoring TeX control
        sequences and any space that follows them */
@@ -526,15 +493,8 @@ static long	line_number;
 int		main ARGS((int argc,char* argv[]));
 static void	process ARGS((const char *line_, MATCH_PATTERN patterns_[]));
 
-#if defined(HAVE_STDC)
 int
 main(int argc, char* argv[])
-#else /* K&R style */
-int
-main(argc,argv)
-int argc;
-char* argv[];
-#endif
 {
     char line[MAXLINE];
 
@@ -577,15 +537,8 @@ char* argv[];
 }
 
 
-#if defined(HAVE_STDC)
 static void
 process(const char *line, MATCH_PATTERN patterns[])
-#else /* K&R style */
-static void
-process(line,patterns)
-const char *line;
-MATCH_PATTERN patterns[];
-#endif
 {
     int k;
     const char *p;

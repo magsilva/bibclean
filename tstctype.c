@@ -6,15 +6,8 @@ Test the <ctype.h> functions for characters in 0..255.
 #include <stdio.h>
 #include <ctype.h>
 
-#if defined(__cplusplus) || defined(__STDC__)
 void
 test_isxxx(const char *name, int (*fcn)(int))
-#else
-void
-test_isxxx(name, fcn)
-char *name;
-int (*fcn)();
-#endif
 {
     int k;
 
@@ -37,15 +30,8 @@ int (*fcn)();
     (void)printf("\n");
 }
 
-#if defined(__cplusplus) || defined(__STDC__)
 void
 test_to(const char *name, int (*fcn)(int))
-#else
-void
-test_to(name, fcn)
-char *name;
-int (*fcn)();
-#endif
 {
     int k;
 
@@ -68,15 +54,8 @@ int (*fcn)();
     (void)printf("\n");
 }
 
-#if defined(__cplusplus) || defined(__STDC__)
 int
 main(int argc, char* argv[])
-#else
-int
-main(argc, argv)
-int argc;
-char* argv[];
-#endif
 {
 
     test_isxxx("isalnum", isalnum);

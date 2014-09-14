@@ -10,8 +10,6 @@
 #include "xstdbool.h"
 #include "xstdlib.h"
 
-RCSID("$Id: romtol.c,v 1.5 2003/08/22 23:22:55 beebe Exp beebe $")
-
 /*
  * $Log: romtol.c,v $
  * Revision 1.5  2003/08/22 23:22:55  beebe
@@ -81,7 +79,6 @@ written as mxm or mcmxc.
 ***********************************************************************/
 
 
-#if defined(HAVE_STDC)
 long					/* Convert Roman number to long */
 romtol(
 /*@null@*/ const char  *nptr,		/* pointer to Roman number string */
@@ -89,12 +86,6 @@ romtol(
 					/* point just beyond last character */
 					/* converted */
 )
-#else /* NOT defined(HAVE_STDC) */
-long
-romtol(nptr,endptr)
-/*@null@*/ const char *nptr;
-/*@null@*/ char** endptr;
-#endif /* defined(HAVE_STDC) */
 {
     long last_value;
     long number;
@@ -129,27 +120,15 @@ romtol(nptr,endptr)
 }
 
 
-#if defined(HAVE_STDC)
 bool
 is_roman(int c)	/* return true if c is Roman digit, otherwise false */
-#else /* NOT defined(HAVE_STDC) */
-bool
-is_roman(c)
-int c;
-#endif /* defined(HAVE_STDC) */
 {
     return ((roman_digit_value(c) == 0) ? false : true);
 }
 
 
-#if defined(HAVE_STDC)
 static int
 roman_digit_value(int c)	/* return digit value, or 0 if non-digit */
-#else /* NOT defined(HAVE_STDC) */
-static int
-roman_digit_value(c)
-int c;
-#endif /* defined(HAVE_STDC) */
 {
     /*@observer@*/ static const char* roman_digits = "ivxlcdm";
     static const int roman_values[] = { 1, 5, 10, 50, 100, 500, 1000 };
@@ -172,18 +151,11 @@ results are echoed to stdout.
 #endif /* EXIT_SUCCESS */
 
 
-#if defined(HAVE_STDC)
 int
 main(
 int			argc,
 char			*argv[]
 )
-#else /* NOT defined(HAVE_STDC) */
-int
-main(argc,argv)
-int			argc;
-char			*argv[];
-#endif /* defined(HAVE_STDC) */
 {
     char		s[25];
     char		*endptr;

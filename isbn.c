@@ -57,15 +57,10 @@
 #include "xstring.h"
 #include "xctype.h"
 
-RCSID("$Id: isbn.c,v 1.12 2014/04/03 18:05:23 beebe Exp beebe $")
-
 #include "ch.h"
 #include "isbn.h"
 #include "yesorno.h"
 
-#if !defined(MAX_ISBN_RANGE)
-#define MAX_ISBN_RANGE	2560		/* about 8 times the default size */
-#endif
 
 static const char *ISBN_file = (const char*)NULL;
 
@@ -77,14 +72,14 @@ typedef struct
 }
 ISBN_range_t;
 
+
+#define TOKEN_SEPARATORS	" \t"
+
+#if !defined(MAX_ISBN_RANGE)
+#define MAX_ISBN_RANGE	2560		/* about 8 times the default size */
+#endif
+
 #include "isbn.tbl"	/* generated from awk -f isbn-el-to-bibclean-isbn.awk isbn.el */
-
-#define isISBNdigit(c)	(Isdigit((int)(c)) || ((int)(c) == (int)'X') || ((int)(c) == (int)'x'))
-
-#define isISBN_13digit(c) isISBNdigit(c)
-
-#define MAX_ISBN	14 /* array size for complete ISBN and terminal NUL */
-#define MAX_ISBN_13	18 /* array size for complete ISBN-13 and terminal NUL */
 
 extern FILE		*stdlog;
 
@@ -92,89 +87,40 @@ extern FILE		*stdlog;
 extern char		*get_line ARGS((FILE *fp_));
 extern char		*Strdup ARGS((const char *s_));
 extern FILE		*tfopen ARGS((const char *filename_, const char *mode_));
+extern void		warning ARGS((const char *msg_));
 
-void			ISBN_hyphenate ARGS((/*@out@*/ char *s_,/*@out@*/ char *t_,size_t maxs_));
-void			ISBN_initialize ARGS((void));
-
-static void		add_ISBN_range ARGS((const char *the_begin,
-					     const char *the_end,
-					     const char *the_countries));
-static void		add_one_ISBN_range ARGS((const char *the_begin,
-						 const char *the_end,
-						 const char *the_countries,
-						 size_t where));
-
+static void		add_ISBN_range ARGS((const char *the_begin, const char *the_end, const char *the_countries));
+static void		add_one_ISBN_range ARGS((const char *the_begin, const char *the_end, const char *the_countries, size_t where));
 static YESorNO		is_valid_ISBN_prefix ARGS((const char *prefix));
 static const char	*fix_ISBN ARGS((const char *ISBN_));
-static const char	*hyphenate_one_ISBN ARGS((const char *prefix_,
-						  const char *ISBN_));
-static const char	*hyphenate_one_ISBN_13 ARGS((const char *prefix_,
-						  const char *ISBN_13_));
-static int		in_ISBN_range ARGS((const char *begin_,
-					    const char *ISBN_,
-					    const char *end_));
+static const char	*hyphenate_one_ISBN ARGS((const char *prefix_, const char *ISBN_));
+static const char	*hyphenate_one_ISBN_13 ARGS((const char *prefix_, const char *ISBN_13_));
+static int		in_ISBN_range ARGS((const char *begin_, const char *ISBN_, const char *end_));
 static YESorNO		ISBN_match_country_language ARGS((const char *p1, const char *p2));
 static const char 	*next_ISBN ARGS((const char *s_, const char **end_));
 static const char 	*next_ISBN_13 ARGS((const char *s_, const char **end_));
-static void		squeeze_ISBN ARGS((char * out_ISBN_,
-					   const char *in_ISBN_));
-extern void		warning ARGS((const char *msg_));
-
-#if defined(TEST)
-
-#define MAX_BUF		4096
-
-int			main ARGS((int argc_, char* argv_[]));
-
-#if defined(HAVE_STDC)
-int
-main(int argc, char* argv[])
-#else
-int
-main(argc,argv)
-int argc;
-char* argv[];
-#endif
-{
-    char buf[MAX_BUF];
-    char buf2[MAX_BUF];
-
-    while (fgets(buf,MAX_BUF,stdin) != (char*)NULL)
-    {
-	ISBN_hyphenate(buf,buf2,MAX_BUF);
-	(void)fputs(buf,stdout);
-	(void)fflush(stdout);
-    }
-
-    exit (EXIT_SUCCESS);
-    return (EXIT_SUCCESS);
-}
-#endif /* defined(TEST) */
+static void	        squeeze_ISBN ARGS((char * out_ISBN_, const char *in_ISBN_));
 
 
-#if defined(HAVE_STDC)
+#define skip_non_ISBN_digit(p)    while ((*p != '\0') && !isISBNdigit((int)*p)) p++
+
+#define isISBNdigit(c)	(Isdigit((int)(c)) || ((int)(c) == (int)'X') || ((int)(c) == (int)'x'))
+
+
+/*
+ * Search the ISBN_range[] table circularly from the last search
+ * position for the next non-empty slot matching the_begin, and
+ * install the new triple (the_begin,the_end,the_countries) there.
+ * Otherwise, add the triple at the end, if enough space remains.
+ */
 static void
-add_ISBN_range(const char *the_begin, const char *the_end,
-	       const char *the_countries)
-#else /* K&R style */
-static void
-add_ISBN_range(the_begin, the_end, the_countries)
-const char *the_begin;
-const char *the_end;
-const char *the_countries;
-#endif
+add_ISBN_range(const char *the_begin, const char *the_end, const char *the_countries)
 {
-    /* Search the ISBN_range[] table circularly from the last search
-       position for the next non-empty slot matching the_begin, and
-       install the new triple (the_begin,the_end,the_countries) there.
-       Otherwise, add the triple at the end, if enough space remains. */
-
     static int error_count = 0;
     size_t k;
     static size_t start = (size_t) 0;
 
     /* Silently ignore invalid begin/end pairs */
-
     if (the_begin == (const char *)NULL)
 	return;
     else if (the_end == (const char *)NULL)
@@ -212,7 +158,6 @@ const char *the_countries;
     }
 
     /* If we fell through, then restart the search in the beginning of the table */
-
     for (k = 0;
 	 (k < start) && (ISBN_range[k].begin != (const char *)NULL); ++k)
     {
@@ -255,67 +200,42 @@ const char *the_countries;
 	add_one_ISBN_range(the_begin, the_end, the_countries, k);
     }
     else if (++error_count == 1)	/* no more than one error message */
-	(void)fprintf(stdlog,
+	fprintf(stdlog,
 		      "More than %lu ISBN ranges fills internal table\n",
 		      (unsigned long)MAX_ISBN_RANGE);
 }
 
 
-#if defined(HAVE_STDC)
 static void
 add_one_ISBN_range(const char *the_begin, const char *the_end,
 		   const char *the_countries, size_t where)
-#else /* K&R style */
-static void
-add_one_ISBN_range(the_begin, the_end, the_countries, where)
-const char *the_begin;
-const char *the_end;
-const char *the_countries;
-size_t where;
-#endif
 {	/* add an entry at slot where, without bounds checking, but with
 	   valid-value checking */
-#define FMT_INVALID	"Invalid country/language-publisher ISBN prefix [%s] in ISBN file [%s]\n"
 
-    if ((the_begin != (const char*)NULL) && (is_valid_ISBN_prefix(the_begin) == NO))
+    if (
+	(the_begin != (const char*)NULL) && (is_valid_ISBN_prefix(the_begin) == NO) ||
+        (the_end != (const char*)NULL) && (is_valid_ISBN_prefix(the_end) == NO)
+    )
     {
-	(void)fprintf(stdlog, FMT_INVALID, the_begin, ISBN_file);
+	fprintf(stdlog, "Invalid country/language-publisher ISBN prefix [%s] in ISBN file [%s]\n", the_begin, ISBN_file);
 	return;
     }
-    else if ((the_end != (const char*)NULL) && (is_valid_ISBN_prefix(the_end) == NO))
+    else if ((the_begin != (const char*)NULL) && (the_end != (const char*)NULL) && STRGREATER(the_begin,the_end))
     {
-	(void)fprintf(stdlog, FMT_INVALID, the_end, ISBN_file);
-	return;
-    }
-    else if ((the_begin != (const char*)NULL) && (the_end != (const char*)NULL) &&
-	     STRGREATER(the_begin,the_end))
-    {
-	(void)fprintf(stdlog,
+	fprintf(stdlog,
 		      "Non-increasing country/language-publisher ISBN range [%s .. %s] in ISBN file [%s]\n",
 		      the_begin, the_end, ISBN_file);
 	return;
     }
 
-    ISBN_range[where].begin = (the_begin == (const char *)NULL) ? the_begin :
-	Strdup(the_begin);
-    ISBN_range[where].end = (the_end == (const char *)NULL) ? the_end :
-	Strdup(the_end);
-    ISBN_range[where].countries = (the_countries == (const char *)NULL) ? "" :
-	Strdup(the_countries);
-
-#undef FMT_INVALID
+    ISBN_range[where].begin = (the_begin == (const char *)NULL) ? the_begin : Strdup(the_begin);
+    ISBN_range[where].end = (the_end == (const char *)NULL) ? the_end : Strdup(the_end);
+    ISBN_range[where].countries = (the_countries == (const char *)NULL) ? "" : Strdup(the_countries);
 }
 
 
-#if defined(HAVE_STDC)
 void
 do_ISBN_file(/*@null@*/ const char *pathlist, /*@null@*/ const char *name)
-#else /* K&R style */
-void
-do_ISBN_file(pathlist,name)
-/*@null@*/ const char *pathlist;
-/*@null@*/ const char *name;
-#endif
 {
     FILE *fp;
     char *p;
@@ -339,7 +259,6 @@ do_ISBN_file(pathlist,name)
        blanks. */
     while ((p = get_line(fp)) != (char*)NULL)
     {
-#define TOKEN_SEPARATORS	" \t"
 	const char *the_begin;
 	const char *the_end;
 	const char *the_countries;
@@ -357,7 +276,7 @@ do_ISBN_file(pathlist,name)
 	the_end = strtok((char*)NULL, TOKEN_SEPARATORS);
 	if (the_end == (const char*)NULL)
 	{
-	    (void)fprintf(stdlog,"Expected end-prefix after begin-prefix [%s] in ISBN file [%s]\n",
+	    fprintf(stdlog,"Expected end-prefix after begin-prefix [%s] in ISBN file [%s]\n",
 			  the_begin, ISBN_file);
 	    continue;
 	}
@@ -370,7 +289,7 @@ do_ISBN_file(pathlist,name)
 	if ((the_countries != (const char*)NULL) && (*the_countries == '\0'))
 	    the_countries = (const char*)NULL;
 #if defined(DEBUG)
-	(void)fprintf(stdlog,
+	fprintf(stdlog,
 		      "DEBUG:\t[%s]\t[%s]\t[%s]\t[%s]\n",
 		      ISBN_file,
 		      the_begin,
@@ -380,7 +299,6 @@ do_ISBN_file(pathlist,name)
 	add_ISBN_range(the_begin, the_end, the_countries);
     }
     (void)fclose(fp);
-#undef TOKEN_SEPARATORS
 }
 
 
@@ -392,7 +310,7 @@ do_print_ISBN_table(VOID)
     /* For brevity and readability, we output the country/language
        group prefix only when it changes, preceded by pair of newlines. */
 
-    (void)fprintf(stdlog, "%%%%%% ISBN ranges and country/language groups\n");
+    fprintf(stdlog, "%%%%%% ISBN ranges and country/language groups\n");
     for (k = 0; (ISBN_range[k].begin != (const char *)NULL); ++k)
     {
 	const char *country_names;
@@ -414,7 +332,7 @@ do_print_ISBN_table(VOID)
 
 	/* We intentionally include `deleted' entries (beginning with a hyphen), so
 	   as not to conceal information from the user. */
-	(void)fprintf(stdlog, "%s%-11s\t%-11s%s%s\n",
+	fprintf(stdlog, "%s%-11s\t%-11s%s%s\n",
 		      ((country_names == (const char *)NULL) ? "" : "\n\n"),
 		      ISBN_range[k].begin,
 		      ISBN_range[k].end,
@@ -423,15 +341,8 @@ do_print_ISBN_table(VOID)
     }
 }
 
-
-#if defined(HAVE_STDC)
 static const char *
 fix_ISBN(const char *ISBN)
-#else /* K&R style */
-static const char *
-fix_ISBN(ISBN)
-const char *ISBN;
-#endif
 {
     size_t k;
 
@@ -439,22 +350,15 @@ const char *ISBN;
     {
 	if (ISBN_range[k].begin[0] == '-')
 	    continue;			/* ignored `deleted' entries */
-	if (in_ISBN_range(ISBN_range[k].begin, ISBN, ISBN_range[k].end)
-	    == 0)
+	if (in_ISBN_range(ISBN_range[k].begin, ISBN, ISBN_range[k].end) == 0)
 	    return (hyphenate_one_ISBN(ISBN_range[k].begin, ISBN));
     }
     return ((const char*)NULL);
 }
 
 
-#if defined(HAVE_STDC)
 static const char *
 fix_ISBN_13(const char *ISBN_13)
-#else /* K&R style */
-static const char *
-fix_ISBN_13(ISBN_13)
-const char *ISBN_13;
-#endif
 {
     size_t k;
 
@@ -462,43 +366,27 @@ const char *ISBN_13;
     {
 	if (ISBN_range[k].begin[0] == '-')
 	    continue;			/* ignored `deleted' entries */
-	if (in_ISBN_range(ISBN_range[k].begin, &ISBN_13[3], ISBN_range[k].end)
-	    == 0)
+	if (in_ISBN_range(ISBN_range[k].begin, &ISBN_13[3], ISBN_range[k].end)  == 0)
 	    return (hyphenate_one_ISBN_13(ISBN_range[k].begin, ISBN_13));
     }
     return ((const char*)NULL);
 }
 
 
-#define skip_non_ISBN_digit(p)    while ((*p != '\0') && !isISBNdigit((int)*p)) p++
-
-#define skip_non_ISBN_13_digit(p) skip_non_ISBN_digit(p)
-
-
-#if defined(HAVE_STDC)
+/**
+ * Given a countrygroupnumber-publishernumber prefix, and an ISBN
+ * optionally containing spaces and hyphens, return a pointer to an
+ * unmodifiable properly-hyphenated ISBN stored in an internal buffer
+ * that is overwritten on subsequent calls, or NULL if the correct
+ * number of ISBN digits is not found.
+ *
+ * The input ISBN can contain optional leading and trailing text,
+ * such as a line from a BibTeX .bib file, like this:
+ * ISBN =         "0-387-09823-2 (paperback)",
+ */
 static const char *
 hyphenate_one_ISBN(const char *prefix, const char *ISBN)
-#else /* K&R style */
-static const char *
-hyphenate_one_ISBN(prefix,ISBN)
-const char *prefix;
-const char *ISBN;
-#endif
 {
-    /*******************************************************************
-      Given a countrygroupnumber-publishernumber prefix, and an ISBN
-      optionally containing spaces and hyphens, return a pointer to an
-      unmodifiable properly-hyphenated ISBN stored in an internal buffer
-      that is overwritten on subsequent calls, or NULL if the correct
-      number of ISBN digits is not found.
-
-      The input ISBN can contain optional leading and trailing text,
-      such as a line from a BibTeX .bib file, like this:
-
-	 ISBN =         "0-387-09823-2 (paperback)",
-
-     ******************************************************************/
-
     static char new_ISBN[MAX_ISBN];
     int k;
 
@@ -542,15 +430,8 @@ const char *ISBN;
 }
 
 
-#if defined(HAVE_STDC)
 static const char *
 hyphenate_one_ISBN_13(const char *prefix, const char *ISBN_13)
-#else /* K&R style */
-static const char *
-hyphenate_one_ISBN_13(prefix,ISBN_13)
-const char *prefix;
-const char *ISBN_13;
-#endif
 {
 
     /*******************************************************************
@@ -570,7 +451,7 @@ const char *ISBN_13;
     static char new_ISBN_13[MAX_ISBN_13];
     int k;
 
-    skip_non_ISBN_13_digit(ISBN_13);
+    skip_non_ISBN_digit(ISBN_13);
 
     for (k = 0; (*ISBN_13 != '\0') && (k < (MAX_ISBN_13 - 2)); )
     {
@@ -595,7 +476,7 @@ const char *ISBN_13;
 	}
 	else if (*prefix != '\0')
 	{
-	    skip_non_ISBN_13_digit(ISBN_13);
+	    skip_non_ISBN_digit(ISBN_13);
 	    if (*ISBN_13 == '\0')
 		break;
 	    new_ISBN_13[k++] = *ISBN_13++;
@@ -605,13 +486,13 @@ const char *ISBN_13;
 	}
 	else			/* past prefix */
 	{
-	    skip_non_ISBN_13_digit(ISBN_13);
+	    skip_non_ISBN_digit(ISBN_13);
 	    if (*ISBN_13 == '\0')
 		break;
 	    new_ISBN_13[k++] = *ISBN_13++;
 	}
     }
-    if ((k == (MAX_ISBN_13 - 2)) && !isISBN_13digit(*ISBN_13))
+    if ((k == (MAX_ISBN_13 - 2)) && !isISBNdigit(*ISBN_13))
     {
 	new_ISBN_13[(MAX_ISBN_13 - 2)] = new_ISBN_13[(MAX_ISBN_13 - 3)];
 				/* move checksum digit to end */
@@ -624,47 +505,34 @@ const char *ISBN_13;
 }
 
 
-#if defined(HAVE_STDC)
+/**
+ * Compare the countrygroupnumber-publishernumber part of ISBN
+ * against the range (begin, end), and return -1 (less than),
+ * 0 (in range), or +1 (greater than).
+ */
 static int
 in_ISBN_range(const char *begin, const char *ISBN, const char *end)
-#else /* K&R style */
-static int
-in_ISBN_range(begin,ISBN,end)
-const char *begin;
-const char *ISBN;
-const char *end;
-#endif
 {
-    /* Compare the countrygroupnumber-publishernumber part of ISBN
-       against the range (begin, end), and return -1 (less than),
-       0 (in range), or +1 (greater than). */
-
     char begin_prefix[MAX_ISBN];
     char end_prefix[MAX_ISBN];
     char ISBN_prefix[MAX_ISBN];
 
     squeeze_ISBN(begin_prefix, begin);
-    squeeze_ISBN(ISBN_prefix,ISBN);
+    squeeze_ISBN(ISBN_prefix, ISBN);
 
-    if (strncmp(ISBN_prefix,begin_prefix,strlen(begin_prefix)) < 0)
+    if (strncmp(ISBN_prefix, begin_prefix, strlen(begin_prefix)) < 0)
 	return (-1);
 
-    squeeze_ISBN(end_prefix,end);
-    if (strncmp(end_prefix,ISBN_prefix,strlen(end_prefix)) < 0)
+    squeeze_ISBN(end_prefix, end);
+    if (strncmp(end_prefix, ISBN_prefix, strlen(end_prefix)) < 0)
 	return (1);
 
     return (0);
 }
 
 
-#if defined(HAVE_STDC)
 static YESorNO
 is_valid_ISBN_prefix(const char *prefix)
-#else /* K&R style */
-static YESorNO
-is_valid_ISBN_prefix(prefix)
-const char *prefix;
-#endif
 {
     /* Return YES if prefix matches "^[0-9]+-[0-9]+$" and has a length
        < 10, and else, NO */
@@ -695,101 +563,70 @@ const char *prefix;
 }
 
 
-#if defined(HAVE_STDC)
+/**
+ * Given a string s[] containing one or more ISBNs, rewrite the
+ * string in-place with correct ISBN hyphenation.  Up to maxs-1
+ * non-NUL characters of s[] may be used. t[] is workspace, at
+ * least as large as s[].   If insufficient workspace is
+ * available, s[] is returned unchanged.
+ */
 void
 ISBN_hyphenate(/*@out@*/ char *s, /*@out@*/ char *t, size_t maxs)
-#else /* K&R style */
-void
-ISBN_hyphenate(s,t,maxs)
-/*@out@*/ char *s;
-/*@out@*/ char *t;
-size_t maxs;
-#endif
 {
     const char *p;
     const char *r;
     const char *next;
     const char *start;
 
-    /* Given a string s[] containing one or more ISBNs, rewrite the */
-    /* string in-place with correct ISBN hyphenation.  Up to maxs-1 */
-    /* non-NUL characters of s[] may be used. t[] is workspace, at */
-    /* least as large as s[].   If insufficient workspace is */
-    /* available, s[] is returned unchanged. */
-
     t[0] = '\0';
 
-#if defined(__WATCOMC__)
-    /* Watcom 10.0 C++ compilers on IBM PC cannot handle the original
-       version, which was written that way to avoid compiler warnings,
-       sigh... */
-    for (p = start = s; (p = next_ISBN(p,&next)) != (const char*)NULL;
-	 start = p)
-#else
-    for (p = start = s; (p = next_ISBN(p,&next), p) != (const char*)NULL;
-	 start = p)
-#endif
+    for (p = start = s; (p = next_ISBN(p, &next), p) != (const char*)NULL; start = p)
     {
 	if ((strlen(t) + (size_t)(p-start)) >= maxs)
 	    return;		/* insufficient space: premature return */
-	(void)strncat(t,start,(size_t)(p-start));
+
+	strncat(t, start, (size_t)(p - start));
 	r = fix_ISBN(p);
 	if (r != (char*)NULL)
 	{
 	    if ((strlen(t) + strlen(r)) >= maxs)
 		return;		/* insufficient space: premature return */
-	    (void)strcat(t,r);
+	    strcat(t, r);
 	    p = next;
 	}
 	else
 	{
 	    if ((strlen(t) + 1) >= maxs)
 		return;		/* insufficient space: premature return */
-	    (void)strncat(t,p,1);
+	    strncat(t, p, 1);
 	    ++p;
 	}
     }
     if ((strlen(t) + strlen(start)) >= maxs)
 	return;		/* insufficient space: premature return */
-    (void)strcat(t,start);
-    (void)strcpy(s,t);
+    strcat(t, start);
+    strcpy(s, t);
 }
 
-
-#if defined(HAVE_STDC)
+/**
+ * Given a string s[] containing one or more ISBN_13s, rewrite the
+ * string in-place with correct ISBN_13 hyphenation.  Up to maxs-1
+ * non-NUL characters of s[] may be used. t[] is workspace, at
+ * least as large as s[].   If insufficient workspace is
+ * available, s[] is returned unchanged.
+ */
 void
 ISBN_13_hyphenate(/*@out@*/ char *s, /*@out@*/ char *t, size_t maxs)
-#else /* K&R style */
-void
-ISBN_13_hyphenate(s,t,maxs)
-/*@out@*/ char *s;
-/*@out@*/ char *t;
-size_t maxs;
-#endif
 {
     const char *p;
     const char *r;
     const char *next;
     const char *start;
 
-    /* Given a string s[] containing one or more ISBN_13s, rewrite the */
-    /* string in-place with correct ISBN_13 hyphenation.  Up to maxs-1 */
-    /* non-NUL characters of s[] may be used. t[] is workspace, at */
-    /* least as large as s[].   If insufficient workspace is */
-    /* available, s[] is returned unchanged. */
+   t[0] = '\0';
 
-    t[0] = '\0';
-
-#if defined(__WATCOMC__)
-    /* Watcom 10.0 C++ compilers on IBM PC cannot handle the original
-       version, which was written that way to avoid compiler warnings,
-       sigh... */
-    for (p = start = s; (p = next_ISBN_13(p,&next)) != (const char*)NULL;
-	 start = p)
-#else
     for (p = start = s; (p = next_ISBN_13(p,&next), p) != (const char*)NULL;
 	 start = p)
-#endif
     {
 	if ((strlen(t) + (size_t)(p-start)) >= maxs)
 	    return;		/* insufficient space: premature return */
@@ -817,46 +654,43 @@ size_t maxs;
 }
 
 
+/**
+ * Check the consistency of the ISBN_range[] table, and then
+ * modify its compile-time setting so that all entries are
+ * guaranteed to have non-NULL countries.  We need to ensure this,
+ * because an "-ISBN-file filename" option can `delete' table
+ * entries (by resetting the begin string to start with a hyphen).
+ */
 void
 ISBN_initialize(VOID)
 {
     size_t k;
 
-    /* Check the consistency of the ISBN_range[] table, and then
-       modify its compile-time setting so that all entries are
-       guaranteed to have non-NULL countries.  We need to ensure this,
-       because an "-ISBN-file filename" option can `delete' table
-       entries (by resetting the begin string to start with a hyphen). */
-
-    for (k = 0; (ISBN_range[k].begin != (const char *)NULL); ++k)
+   for (k = 0; (ISBN_range[k].begin != (const char *)NULL); ++k)
     {
 	if (ISBN_range[k].end == (const char*)NULL)
 	{
-	    (void)fprintf(stdlog,
+	    fprintf(stdlog,
 			  "Illegal ISBN range end [%s .. NULL]\n",
 			  ISBN_range[k].begin);
 	    ISBN_range[k].end = "";
 	}
 
-#define FMT_INVALID	"Invalid country/language-publisher ISBN prefix [%s]\n"
-
 	if (is_valid_ISBN_prefix(ISBN_range[k].begin) == NO)
 	{
-	      (void)fprintf(stdlog, FMT_INVALID, ISBN_range[k].begin);
+	      fprintf(stdlog, "Invalid country/language-publisher ISBN prefix [%s]\n", ISBN_range[k].begin);
 	      ISBN_range[k].begin = "";
 	}
 
 	if (is_valid_ISBN_prefix(ISBN_range[k].end) == NO)
 	{
-	      (void)fprintf(stdlog, FMT_INVALID, ISBN_range[k].end);
+	      fprintf(stdlog, "Invalid country/language-publisher ISBN prefix [%s]\n", ISBN_range[k].end);
 	      ISBN_range[k].end = "";
 	}
 
-#undef FMT_INVALID
-
 	if (STRGREATER(ISBN_range[k].begin, ISBN_range[k].end))
 	{
-	    (void)fprintf(stdlog,
+	    fprintf(stdlog,
 			  "Non-increasing country/language-publisher ISBN range [%s .. %s] deleted\n",
 			  ISBN_range[k].begin, ISBN_range[k].end);
 	    ISBN_range[k].begin = ISBN_range[k].end = "";
@@ -864,10 +698,9 @@ ISBN_initialize(VOID)
 
 	if (ISBN_range[k].countries == (const char *)NULL)
 	{
-	    if ((k == 0) ||
-		(ISBN_match_country_language(ISBN_range[k-1].begin,ISBN_range[k].begin) == NO))
+	    if ((k == 0) || ISBN_match_country_language(ISBN_range[k-1].begin,ISBN_range[k].begin) == NO)
 	    {
-		(void)fprintf(stdlog,
+		fprintf(stdlog,
 			      "Missing country names for ISBN range [%s .. %s]\n",
 			      ISBN_range[k].begin, ISBN_range[k].end);
 		ISBN_range[k].countries = "";
@@ -881,18 +714,13 @@ ISBN_initialize(VOID)
 }
 
 
-#if defined(HAVE_STDC)
+
+/**
+ * Return YES if the country/language prefixes of p1 and p2 match, else NO
+ */
 static YESorNO
 ISBN_match_country_language(const char *p1, const char *p2)
-#else /* K&R style */
-static YESorNO
-ISBN_match_country_language(p1, p2)
-const char *p1;
-const char *p2;
-#endif
 {
-    /* Return YES if the country/language prefixes of p1 and p2 match, else NO */
-
     size_t k;
 
     if ((p1 == (const char *)NULL) || (p2 == (const char *)NULL))
@@ -910,15 +738,8 @@ const char *p2;
 }
 
 
-#if defined(HAVE_STDC)
 static const char *
 next_ISBN(const char *s,const char **next)
-#else /* K&R style */
-static const char *
-next_ISBN(s,next)
-const char *s;
-const char **next;
-#endif
 {
     size_t n;
     const char *start;
@@ -949,27 +770,20 @@ const char **next;
     return ((const char*)NULL);		/* no ISBN recognized */
 }
 
-#if defined(HAVE_STDC)
 static const char *
 next_ISBN_13(const char *s,const char **next)
-#else /* K&R style */
-static const char *
-next_ISBN_13(s,next)
-const char *s;
-const char **next;
-#endif
 {
     size_t n;
     const char *start;
 
     while (*s != '\0')			/* scan over s[] */
     {
-	for ( ; (*s != '\0') && !isISBN_13digit(*s); ++s) /* ignore non-ISBN_13 digits */
+	for ( ; (*s != '\0') && !isISBNdigit(*s); ++s) /* ignore non-ISBN_13 digits */
 	    continue;
 
 	for (n = 0, start = s; (*s != '\0'); ++s)	/* scan over ISBN_13 */
 	{
-	    if (isISBN_13digit(*s))
+	    if (isISBNdigit(*s))
 	    {
 		n++;
 		if (n == 13)		/* then we found an ISBN_13 */
@@ -988,19 +802,16 @@ const char **next;
     return ((const char*)NULL);		/* no ISBN_13 recognized */
 }
 
-#if defined(HAVE_STDC)
+
+/**
+ * Copy in_ISBN to out_ISBN, eliminating non-ISBN characters.
+ */
 static void
 squeeze_ISBN(char * out_ISBN, const char *in_ISBN)
-#else /* K&R style */
-static void
-squeeze_ISBN(out_ISBN,in_ISBN)
-char * out_ISBN;
-const char *in_ISBN;
-#endif
-{		/* Copy in_ISBN to out_ISBN, eliminating non-ISBN characters */
+{
     char *limit = out_ISBN + MAX_ISBN;
 
-    for ( ; out_ISBN < limit ; )
+    while (out_ISBN < limit)
     {
 	skip_non_ISBN_digit(in_ISBN);
 	*out_ISBN = *in_ISBN;
@@ -1010,3 +821,27 @@ const char *in_ISBN;
 	out_ISBN++;
     }
 }
+
+#if defined(TEST)
+#define MAX_BUF		4096
+
+int			main ARGS((int argc_, char* argv_[]));
+
+int
+main(int argc, char* argv[])
+{
+    char buf[MAX_BUF];
+    char buf2[MAX_BUF];
+
+    while (fgets(buf,MAX_BUF,stdin) != (char*)NULL)
+    {
+	ISBN_hyphenate(buf,buf2,MAX_BUF);
+	(void)fputs(buf,stdout);
+	(void)fflush(stdout);
+    }
+
+    exit (EXIT_SUCCESS);
+    return (EXIT_SUCCESS);
+}
+#endif /* defined(TEST) */
+

@@ -4,12 +4,11 @@
 #include "xstring.h"
 #include "xstdlib.h"
 
-RCSID("$Id: chek.c,v 1.9 2014/04/03 18:01:08 beebe Exp beebe $")
-
 #include "yesorno.h"
 #include "match.h"			/* must come AFTER yesorno.h */
 #include "token.h"
 #include "typedefs.h"			/* must come AFTER match.h */
+#include "isbn.h"
 
 #if defined(HAVE_PATTERNS)
 #define PATTERN_MATCHES(string,pattern) (match_pattern(string,pattern) == YES)
@@ -24,19 +23,10 @@ RCSID("$Id: chek.c,v 1.9 2014/04/03 18:01:08 beebe Exp beebe $")
 #define	PT_VOLUME	4		/* index in pattern_names[] */
 #define	PT_YEAR		5		/* index in pattern_names[] */
 
-#define STD_MAX_TOKEN	((size_t)1000)	/* Standard BibTeX limit */
+#define STD_MAX_TOKEN	((size_t)10000)	/* Standard BibTeX limit */
 
-#define UNKNOWN_CODEN	"??????"
-#define MAX_CODEN	(sizeof(UNKNOWN_CODEN)-1)
-
-#define UNKNOWN_ISBN	"??????????"
-#define MAX_ISBN	(sizeof(UNKNOWN_ISBN)-1)
-
-#define UNKNOWN_ISBN_13	"?????????????"
-#define MAX_ISBN_13	(sizeof(UNKNOWN_ISBN_13)-1)
-
-#define UNKNOWN_ISSN	"????????"
-#define MAX_ISSN	(sizeof(UNKNOWN_ISSN)-1)
+#define MAX_CODEN	7
+#define MAX_ISSN	9
 
 extern YESorNO	check_values;		/* NO: suppress value checks */
 extern char	current_field[];	/* field name */
@@ -51,6 +41,7 @@ extern YESorNO	stdlog_on_stdout;	/* NO for separate files */
 extern void	error ARGS((const char *msg_));
 extern void	ISBN_hyphenate ARGS((/*@out@*/ char *s_, /*@out@*/ char *t_, size_t maxs_));
 extern void	ISBN_13_hyphenate ARGS((/*@out@*/ char *s_, /*@out@*/ char *t_, size_t maxs_));
+extern void     squeeze_ISBN ARGS((char * out_ISBN, const char *in_ISBN));
 extern void	warning ARGS((const char *msg_));
 
 void		check_chapter ARGS((void));
@@ -96,109 +87,71 @@ static void	validate_ISSN ARGS((const char *ISSN_, size_t n_));
 static void	validate_URL ARGS((const char *CODEN_, size_t n_));
 static void	unexpected ARGS((void));
 
-#define ISBN_DIGIT_VALUE(c)	((((int)(c) == (int)'X') || ((int)(c) == (int)'x')) ? 10 : \
-					((int)(c) - (int)'0'))
-				/* correct only if digits are valid; */
-				/* the code below ensures that */
-
-#define ISSN_DIGIT_VALUE(c)	ISBN_DIGIT_VALUE(c)
-				/* ISSN digits are just like ISBN digits */
-
-#if defined(HAVE_STDC)
-static void
-bad_CODEN(char CODEN[7])
-#else /* K&R style */
-static void
-bad_CODEN(CODEN)
-char CODEN[7];
-#endif
-{
-    static const char fmt[] =
-	"Invalid checksum for CODEN %c%c%c%c%c%c in ``%%f = %%v''";
-    char msg[sizeof(fmt)];
+#define ISSN_DIGIT_VALUE(c)	ISBN_DIGIT_VALUE(c)  /* ISSN digits are just like ISBN digits */
 
 #define XCODEN(n)	(int)((CODEN[n] == '\0') ? '?' : CODEN[n])
 
-    (void)sprintf(msg, fmt,
+#define XISSN(n)	(int)((ISSN[n] == '\0') ? '?' : ISSN[n])
+
+static void
+bad_CODEN(char CODEN[7])
+{
+    static const char fmt[] = "Invalid checksum for CODEN %c%c%c%c%c%c in ``%%f = %%v''";
+    char msg[sizeof(fmt)];
+
+    sprintf(msg, fmt,
 		  XCODEN(1), XCODEN(2), XCODEN(3), XCODEN(4), XCODEN(5), XCODEN(6));
     warning(msg);	/* should be error(), but some journals might have */
 			/* invalid CODENs (some books have invalid ISBNs) */
 }
 
 
-#if defined(HAVE_STDC)
 static void
-bad_ISBN(char ISBN[11])
-#else /* K&R style */
-static void
-bad_ISBN(ISBN)
-char ISBN[11];
-#endif
+bad_ISBN(char ISBN[])
 {
-#define MAXISBN	(13+1)	/* space for correctly hyphenated ISBN, plus NUL */
     static const char fmt[] = "Invalid checksum for ISBN %s in ``%%f = %%v''";
-    char msg[sizeof(fmt)+MAXISBN-1-2];
-    char s[MAXISBN];
-    char t[MAXISBN];
+    char msg[sizeof(fmt) + MAX_ISBN_RAW - 1 - 2];
+    char s[MAX_ISBN_RAW];
+    char t[MAX_ISBN_RAW];
     size_t n;
 
-    (void)strcpy(s,UNKNOWN_ISBN);
     n = strlen(&ISBN[1]);
-    (void)memcpy(s,&ISBN[1],(n > sizeof(s)) ? sizeof(s) : n);
-    s[10] = '\0';
+    memcpy(s, &ISBN[1], (n > sizeof(s)) ? sizeof(s) : n);
+    s[MAX_ISBN_RAW - 1] = '\0';
     ISBN_hyphenate(s,t,sizeof(s));
 
-    (void)sprintf(msg, fmt, s);
-    warning(msg);	/* used to be error(), but some books actually have */
-			/* invalid ISBNs */
+    sprintf(msg, fmt, s);
+    warning(msg);	/* used to be error(), but some books actually have invalid ISBNs */
 }
 
 
-#if defined(HAVE_STDC)
 static void
-bad_ISBN_13(char ISBN_13[13 + 1])
-#else /* K&R style */
-static void
-bad_ISBN_13(ISBN_13)
-char ISBN_13[13 + 1];
-#endif
+bad_ISBN_13(char ISBN_13[])
 {
-#define MAXISBN_13	(13 + 3 + 1)	/* space for correctly hyphenated ISBN_13, plus NUL */
     static const char fmt[] = "Invalid checksum for ISBN_13 %s in ``%%f = %%v''";
-    char msg[sizeof(fmt) + MAXISBN_13 - 1 - 2];
-    char s[MAXISBN_13];
-    char t[MAXISBN_13];
+    char msg[sizeof(fmt) + MAX_ISBN_13_RAW - 1 - 2];
+    char s[MAX_ISBN_13_RAW];
+    char t[MAX_ISBN_13_RAW];
     size_t n;
 
-    (void)strcpy(s,UNKNOWN_ISBN_13);
     n = strlen(&ISBN_13[1]);
-    (void)memcpy(s,&ISBN_13[1],(n > sizeof(s)) ? sizeof(s) : n);
-    s[13] = '\0';
-    ISBN_13_hyphenate(s,t,sizeof(s));
+    memcpy(s, &ISBN_13[1], (n > sizeof(s)) ? sizeof(s) : n);
+    s[MAX_ISBN_13_RAW - 1] = '\0';
+    ISBN_13_hyphenate(s, t, sizeof(s));
 
-    (void)sprintf(msg, fmt, s);
+    sprintf(msg, fmt, s);
     warning(msg);	/* used to be error(), but some books actually have */
 			/* invalid ISBN_13s */
 }
 
 
-#if defined(HAVE_STDC)
 static void
 bad_ISSN(char ISSN[9])
-#else /* K&R style */
-static void
-bad_ISSN(ISSN)
-char ISSN[9];
-#endif
 {
-    static const char fmt[] =
-	"Invalid checksum for ISSN %c%c%c%c-%c%c%c%c in ``%%f = %%v''";
+    static const char fmt[] = "Invalid checksum for ISSN %c%c%c%c-%c%c%c%c in ``%%f = %%v''";
     char msg[sizeof(fmt)];
 
-#define XISSN(n)	(int)((ISSN[n] == '\0') ? '?' : ISSN[n])
-
-    (void)sprintf(msg, fmt, XISSN(1), XISSN(2), XISSN(3), XISSN(4),
-		  XISSN(5), XISSN(6), XISSN(7), XISSN(8));
+    sprintf(msg, fmt, XISSN(1), XISSN(2), XISSN(3), XISSN(4), XISSN(5), XISSN(6), XISSN(7), XISSN(8));
     warning(msg);	/* used to be error(), but some journals might have */
 			/* invalid ISSNs (some books have invalid ISBNs) */
 }
@@ -258,27 +211,8 @@ check_inodes(VOID)
     (void)fstat(fileno(stdlog),&buflog);
     (void)fstat(fileno(stdout),&bufout);
 
-#if OS_UNIX
     stdlog_on_stdout = ((buflog.st_dev == bufout.st_dev) &&
 			(buflog.st_ino == bufout.st_ino)) ? YES : NO;
-#endif /* OS_UNIX */
-
-#if OS_PCDOS
-    /* No inodes, so use other fields instead */
-    stdlog_on_stdout = ((buflog.st_dev == bufout.st_dev) &&
-			(buflog.st_mode == bufout.st_mode) &&
-			(buflog.st_size == bufout.st_size) &&
-			(buflog.st_ctime == bufout.st_ctime)) ? YES : NO;
-#endif /* OS_PCDOS */
-
-#if OS_VAXVMS
-    /* Inode field is 3 separate values */
-    stdlog_on_stdout = ((buflog.st_dev == bufout.st_dev) &&
-			(buflog.st_ino[0] == bufout.st_ino[0]) &&
-			(buflog.st_ino[1] == bufout.st_ino[1]) &&
-			(buflog.st_ino[2] == bufout.st_ino[2])) ? YES : NO;
-#endif /* OS_VAXVMS */
-
 }
 
 
@@ -286,11 +220,29 @@ void
 check_ISBN(VOID)
 {
     char t[MAX_TOKEN_SIZE];
+    char prefix[3];
+    int i, j;
+
+    for (i = 0, j = 0; j < 3 && i < MAX_TOKEN_SIZE; i++)
+    {
+        if (isISBNdigit(current_value[i]))
+        {
+            prefix[j] = current_value[i];
+            j++;
+        }
+    } 
 
     /* Supply correct hyphenation for all ISBNs */
-    ISBN_hyphenate(current_value,t,sizeof(t)/sizeof(t[0]));
-
-    parse_list(current_value, is_ISBN_char, validate_ISBN);
+    if (j == 3 && prefix[0] == '9' && prefix[1] == '7' && prefix[2] == '8')
+    {
+        ISBN_13_hyphenate(current_value, t, sizeof(t) / sizeof(t[0]));
+        parse_list(current_value, is_ISBN_13_char, validate_ISBN_13);
+    }
+    else
+    {
+        ISBN_hyphenate(current_value, t, sizeof(t) / sizeof(t[0]));
+        parse_list(current_value, is_ISBN_char, validate_ISBN);
+    }
 }
 
 
@@ -301,7 +253,6 @@ check_ISBN_13(VOID)
 
     /* Supply correct hyphenation for all ISBN-13s */
     ISBN_13_hyphenate(current_value, t, sizeof(t) / sizeof(t[0]));
-
     parse_list(current_value, is_ISBN_13_char, validate_ISBN_13);
 }
 
@@ -323,14 +274,8 @@ check_ISSN_L(VOID)
 }
 
 
-#if defined(HAVE_STDC)
 YESorNO
 check_junior(const char *last_name)
-#else /* K&R style */
-YESorNO
-check_junior(last_name)
-const char *last_name;
-#endif
 {				/* return YES: name is Jr.-like, else: NO */
     int b_level;		/* brace level */
     static const char *juniors[] =
@@ -404,14 +349,8 @@ check_key(VOID)
 }
 
 
-#if defined(HAVE_STDC)
 void
 check_length(size_t n)
-#else /* K&R style */
-void
-check_length(n)
-size_t n;
-#endif
 {
     if ((check_values == YES) && (n >= STD_MAX_TOKEN))
 	warning("String length exceeds standard BibTeX limit for ``%f'' entry");
@@ -571,15 +510,8 @@ check_pages(VOID)
 
 #if (defined(HAVE_PATTERNS) || defined(HAVE_REGEXP) || defined(HAVE_RECOMP))
 
-#if defined(HAVE_STDC)
 static YESorNO
 check_patterns(PATTERN_TABLE* pt,const char *value)
-#else /* K&R style */
-static YESorNO
-check_patterns(pt,value)
-PATTERN_TABLE* pt;
-const char *value;
-#endif
 {
     /* Return YES if current_value[] matches a pattern, or there are no
        patterns, and NO if there is a match failure.  Any message
@@ -691,14 +623,8 @@ check_year(VOID)
 }
 
 
-#if defined(HAVE_STDC)
 static int
 CODEN_character_value(int c)
-#else /* K&R style */
-static int
-CODEN_character_value(c)
-int c;
-#endif
 {
     if (((int)'a' <= c) && (c <= (int)'z'))
 	return ((c - (int)'a' + 1));
@@ -712,46 +638,36 @@ int c;
 	return (-1);
 }
 
-
-#if defined(HAVE_STDC)
+/**
+ * Copy source[] into target[], excluding spaces and hyphens, and add a
+ * trailing NUL.  Return the number of characters left in source[],
+ * after ignoring trailing spaces and hyphens.
+ */
 static size_t
 copy_element(char *target, size_t nt, const char *source, size_t ns)
-#else /* K&R style */
-static size_t
-copy_element(target, nt, source, ns)
-char *target;
-size_t nt;
-const char *source;
-size_t ns;
-#endif
-{    /* Copy source[] into target[], excluding spaces and hyphens, and add a */
-     /* trailing NUL.  Return the number of characters left in source[], */
-     /* after ignoring trailing spaces and hyphens. */
+{
     size_t ks;
     size_t kt;
 
     for (ks = 0, kt = 0; (ks < ns) && (kt < (nt - 1)); ++ks)
     {
-	if (!((source[ks] == '-') || Isspace(source[ks])))
-	    target[kt++] = source[ks];
+	if (!((source[ks] == '-') || Isspace(source[ks]))) { 
+	    target[kt] = source[ks];
+            kt++;
+        }
     }
     target[kt] = '\0';
 
-    for ( ; (source[ks] == '-') || Isspace(source[ks]); ++ks)
-	continue;		 /* skip trailing space and hyphens */
+    /* skip trailing space and hyphens */
+    while (ks < ns && ((source[ks] == '-') || Isspace(source[ks])))
+        ++ks;
 
     return (size_t)(ns - ks);
 }
 
 
-#if defined(HAVE_STDC)
 static void
 incomplete_CODEN(char CODEN[7])
-#else /* K&R style */
-static void
-incomplete_CODEN(CODEN)
-char CODEN[7];
-#endif
 {
     static const char fmt[] =
 	"Incomplete CODEN %c%c%c%c%c should be %c%c%c%c%c%c in ``%%f = %%v''";
@@ -764,15 +680,8 @@ char CODEN[7];
 }
 
 
-#if defined(HAVE_STDC)
 static YESorNO
 is_CODEN_char(int c, size_t n)
-#else /* K&R style */
-static YESorNO
-is_CODEN_char(c,n)
-int c;
-size_t n;
-#endif
 {
     static size_t n_significant = 0;
 		/* number of significant chars already seen in current CODEN */
@@ -801,29 +710,15 @@ size_t n;
 }
 
 
-#if defined(HAVE_STDC)
 static YESorNO
 is_DOI_char(int c, size_t n)
-#else /* K&R style */
-static YESorNO
-is_DOI_char(c,n)
-int c;
-size_t n;
-#endif
 {
     return (Isprint(c) ? YES : NO);    /* DOIs match any printable string */
 }
 
 
-#if defined(HAVE_STDC)
 static YESorNO
 is_ISBN_char(int c, size_t n)
-#else /* K&R style */
-static YESorNO
-is_ISBN_char(c,n)
-int c;
-size_t n;
-#endif
 {
     static size_t n_significant = 0;
 		/* number of significant chars already seen in current CODEN */
@@ -854,29 +749,15 @@ size_t n;
 }
 
 
-#if defined(HAVE_STDC)
 static YESorNO
 is_ISBN_13_char(int c, size_t n)
-#else /* K&R style */
-static YESorNO
-is_ISBN_13_char(c,n)
-int c;
-size_t n;
-#endif
 {
     return (is_ISBN_char(c, n));
 }
 
 
-#if defined(HAVE_STDC)
 static YESorNO
 is_ISSN_char(int c, size_t n)
-#else /* K&R style */
-static YESorNO
-is_ISSN_char(c,n)
-int c;
-size_t n;
-#endif
 {
     static size_t n_significant = 0;
 		/* number of significant chars already seen in current CODEN */
@@ -907,31 +788,16 @@ size_t n;
 }
 
 
-#if defined(HAVE_STDC)
 static YESorNO
 is_URL_char(int c, size_t n)
-#else /* K&R style */
-static YESorNO
-is_URL_char(c,n)
-int c;
-size_t n;
-#endif
 {
     return (Isprint(c) ? YES : NO);    /* URLs match any printable string */
 }
 
 
-#if defined(HAVE_STDC)
 static void
 parse_list(const char *s, YESorNO (*is_name_char) ARGS((int c, size_t n)),
 	   void (*validate) ARGS((const char *s, size_t n)))
-#else /* K&R style */
-static void
-parse_list(s, is_name_char, validate)
-const char *s;
-YESorNO (*is_name_char) ARGS((int c, size_t n));
-void (*validate) ARGS((const char *s, size_t n));
-#endif
 {
     parse_data pd;
 
@@ -989,14 +855,8 @@ void (*validate) ARGS((const char *s, size_t n));
 }
 
 
-#if defined(HAVE_STDC)
 static void
 parse_element(/*@out@*/ parse_data *pd)
-#else /* K&R style */
-static void
-parse_element(pd)
-/*@out@*/ parse_data *pd;
-#endif
 {
     size_t n;
 
@@ -1008,14 +868,8 @@ parse_element(pd)
 }
 
 
-#if defined(HAVE_STDC)
 static void
 parse_separator(/*@out@*/ parse_data *pd)
-#else /* K&R style */
-static void
-parse_separator(pd)
-/*@out@*/ parse_data *pd;
-#endif
 {
     size_t n;
     int paren_level;			/* parenthesis level */
@@ -1049,15 +903,8 @@ unexpected(VOID)
 }
 
 
-#if defined(HAVE_STDC)
 static void
 validate_CODEN(const char *the_CODEN, size_t n)
-#else
-static void
-validate_CODEN(the_CODEN, n)
-const char *the_CODEN;
-size_t n;
-#endif
 {
     int checksum;
     char CODEN[1 + MAX_CODEN + 1];	/* saved CODEN for error messages */
@@ -1102,7 +949,6 @@ size_t n;
        are NOT used inside CODEN values.
     *******************************************************************/
 
-    (void)strcpy(&CODEN[1], UNKNOWN_CODEN);
     nleft = copy_element(&CODEN[1], sizeof(CODEN)-1, the_CODEN, n);
 
     for (checksum = 0, k = 1; CODEN[k] != '\0'; ++k)
@@ -1130,148 +976,107 @@ size_t n;
 }
 
 
-#if defined(HAVE_STDC)
 static void
 validate_DOI(const char *the_DOI, size_t n)
-#else
-static void
-validate_DOI(the_DOI, n)
-const char *the_DOI;
-size_t n;
-#endif
 {
     static const char *doi_prefix = "http://dx.doi.org/";
 
-    if (strncmp(&the_DOI[1], doi_prefix, sizeof(doi_prefix) - 1) != 0)
-	warning("Expected http://dx.doi.org/ prefix in DOI value ``%v''");
+    if (strncmp(&the_DOI[1], doi_prefix, sizeof(doi_prefix) - 1) == 0)
+	warning("Did not expect http://dx.doi.org/ prefix in DOI value ``%v''");
 }
 
 
-#if defined(HAVE_STDC)
+/**
+ * ISBN numbers are 10-character values from the set [0-9Xx], with
+ * a checksum given by
+ *
+ * 	(sum(k=1:9) digit(k) * k) mod 11 == digit(10)
+ *
+ * where digits have their normal value, X (or x) as a digit has
+ * value 10, and spaces and hyphens are ignored.  The sum is
+ * bounded from above by 10*(1 + 2 + ... + 9) = 450, so even short
+ * (16-bit) integers are sufficient for the accumulation.
+ * 
+ * ISBN digits are grouped into four parts separated by space or
+ * hyphen: countrygroupnumber-publishernumber-booknumber-checkdigit.
+ */
 static void
 validate_ISBN(const char *the_ISBN, size_t n)
-#else
-static void
-validate_ISBN(the_ISBN, n)
-const char *the_ISBN;
-size_t n;
-#endif
 {
-    int checksum;
-    char ISBN[1 + MAX_ISBN + 1];	/* saved ISBN for error messages */
-					/* (use slots 1..10 instead of 0..9) */
-    size_t k;				/* index into ISBN[] */
+    int checksum = 0;
+    char ISBN[MAX_ISBN + 1];	/* saved ISBN for error messages (use slots 1..10 instead of 0..9, thus the "+ 1") */
+    size_t k;			/* index into ISBN[] */
     size_t nleft;
 
-    /*******************************************************************
-       ISBN numbers are 10-character values from the set [0-9Xx], with
-       a checksum given by
-
-		(sum(k=1:9) digit(k) * k) mod 11 == digit(10)
-
-       where digits have their normal value, X (or x) as a digit has
-       value 10, and spaces and hyphens are ignored.  The sum is
-       bounded from above by 10*(1 + 2 + ... + 9) = 450, so even short
-       (16-bit) integers are sufficient for the accumulation.
-
-       ISBN digits are grouped into four parts separated by space or
-       hyphen: countrygroupnumber-publishernumber-booknumber-checkdigit.
-    *******************************************************************/
-
-    (void)strcpy(&ISBN[1],UNKNOWN_ISBN);
-    nleft = copy_element(&ISBN[1], sizeof(ISBN)-1, the_ISBN, n);
-
-    for (checksum = 0, k = 1; ISBN[k] != '\0'; ++k)
+    nleft = copy_element(&ISBN[1], sizeof(ISBN) - 1, the_ISBN, n);
+    for (k = 1; k <= MAX_ISBN && ISBN[k] != '\0'; ++k)
     {
-	if (k < MAX_ISBN)
-	    checksum += ISBN_DIGIT_VALUE(ISBN[k]) * k;
-	else if (k == MAX_ISBN)
-	{
-	    if ((checksum % 11) != ISBN_DIGIT_VALUE(ISBN[k]))
-		bad_ISBN(ISBN);
-	}
-    } 					/* end for (loop over ISBN[]) */
+	checksum += ISBN_DIGIT_VALUE(ISBN[k]) * k;
+    }
 
-    if ((strlen(&ISBN[1]) != MAX_ISBN) || (nleft > 0))
-	bad_ISBN(ISBN);
+    if (k != MAX_ISBN) {
+        bad_ISBN(ISBN);
+    }
+    else
+    {
+	if ((checksum % 11) != 0) {
+            bad_ISBN(ISBN);
+	}
+    }
 }
 
-
-#if defined(HAVE_STDC)
+/**
+ * ISBN_13 numbers are 13-character values from the set [0-9Xx], with
+ * a final checksum digit given by
+ *
+ * 	rem = (sum(k=1:12) digit(k) * weight(k)) mod 10
+ * 	weight(k) = if (k odd) then 1 else 3
+ * 	digit(13) = if (rem == 0) then 0 else (10 - rem)
+ *
+ * where digits have their normal value, X (or x) as a digit has
+ * value 10, and spaces and hyphens are ignored.  The sum is
+ * bounded from above by 3*(9 + 9 + ... + 9) = 324, so even
+ * short (16-bit) integers are sufficient for the accumulation.
+ *
+ * ISBN_13 digits are grouped into five parts separated by space
+ * or hyphen:
+ *
+ *    978-countrygroupnumber-publishernumber-booknumber-checkdigit.
+ *    
+ * The initial prefix changes to 979 when the 978 group is exhausted.
+ */
 static void
 validate_ISBN_13(const char *the_ISBN_13, size_t n)
-#else
-static void
-validate_ISBN_13(the_ISBN_13, n)
-const char *the_ISBN_13;
-size_t n;
-#endif
 {
-    int checksum;
-    char ISBN_13[1 + MAX_ISBN_13 + 1];	/* saved ISBN_13 for error messages */
-					/* (use slots 1..13 instead of 0..12) */
+    int checksum = 0;
+    char ISBN_13[MAX_ISBN_13 + 1];	/* saved ISBN_13 for error messages (use slots 1..13 instead of 0..12, thus the "+ 1" */
     size_t k;				/* index into ISBN_13[] */
     size_t nleft;
+    size_t weight = 1;
 
-    /*******************************************************************
-       ISBN_13 numbers are 13-character values from the set [0-9Xx], with
-       a final checksum digit given by
-
-		rem = (sum(k=1:12) digit(k) * weight(k)) mod 10
-		weight(k) = if (k odd) then 1 else 3
-		digit(13) = if (rem == 0) then 0 else (10 - rem)
-
-       where digits have their normal value, X (or x) as a digit has
-       value 10, and spaces and hyphens are ignored.  The sum is
-       bounded from above by 3*(9 + 9 + ... + 9) = 324, so even
-       short (16-bit) integers are sufficient for the accumulation.
-
-       ISBN_13 digits are grouped into five parts separated by space
-       or hyphen:
-
-           978-countrygroupnumber-publishernumber-booknumber-checkdigit.
-
-       The initial prefix changes to 979 when the 978 group is
-       exhausted.
-    *******************************************************************/
-
-    (void)strcpy(&ISBN_13[1],UNKNOWN_ISBN_13);
-    nleft = copy_element(&ISBN_13[1], sizeof(ISBN_13)-1, the_ISBN_13, n);
-
-    for (checksum = 0, k = 1; ISBN_13[k] != '\0'; ++k)
+    nleft = copy_element(&ISBN_13[1], sizeof(ISBN_13) - 1, the_ISBN_13, n);
+    for (k = 1; k <= MAX_ISBN_13 && ISBN_13[k] != '\0'; ++k)
     {
-	size_t weight;
+	checksum += ISBN_DIGIT_VALUE(ISBN_13[k]) * weight ;
+	weight = (weight == 1) ? 3 : 1;
+    }
 
-	weight = (k & 1) ? 1 : 3;
 
-	if (k < MAX_ISBN_13)
-	    checksum += ISBN_DIGIT_VALUE(ISBN_13[k]) * weight ;
-	else if (k == MAX_ISBN_13)
-	{
-	    size_t digit_13, rem;
-
-	    rem = checksum % 10;
-	    digit_13 = (rem == 0) ? 0 : (10 - rem);
-
-	    if (digit_13 != ISBN_DIGIT_VALUE(ISBN_13[k]))
-		bad_ISBN_13(ISBN_13);
+    if (k != MAX_ISBN_13)
+    {
+        bad_ISBN_13(ISBN_13);
+    }
+    else
+    {
+	if ((checksum % 10) != 0) {
+	    bad_ISBN_13(ISBN_13);
 	}
-    } 					/* end for (loop over ISBN_13[]) */
-
-    if ((strlen(&ISBN_13[1]) != MAX_ISBN_13) || (nleft > 0))
-	bad_ISBN_13(ISBN_13);
+    }
 }
 
 
-#if defined(HAVE_STDC)
 static void
 validate_ISSN(const char *the_ISSN, size_t n)
-#else
-static void
-validate_ISSN(the_ISSN, n)
-const char *the_ISSN;
-size_t n;
-#endif
 {
     long checksum;
     char ISSN[1 + MAX_ISSN + 1];	/* saved ISSN for error messages */
@@ -1294,7 +1099,6 @@ size_t n;
        space or hyphen.
     *******************************************************************/
 
-    (void)strcpy(&ISSN[1],UNKNOWN_ISSN);
     nleft = copy_element(&ISSN[1], sizeof(ISSN)-1, the_ISSN, n);
 
     for (checksum = 0L, k = 1; (ISSN[k] != '\0'); ++k)
@@ -1307,20 +1111,10 @@ size_t n;
 		bad_ISSN(ISSN);
 	}
     } 					/* end for (loop over ISSN[]) */
-
-    if ((strlen(&ISSN[1]) != MAX_ISSN) || (nleft > 0))
-	bad_ISSN(ISSN);
 }
 
-#if defined(HAVE_STDC)
 static void
 validate_URL(const char *the_URL, size_t n)
-#else
-static void
-validate_URL(the_URL, n)
-const char *the_URL;
-size_t n;
-#endif
 {
     char *p;
 
@@ -1333,6 +1127,8 @@ size_t n;
 	if ( ((p - the_URL) >= 3) && (strncmp(&p[-3], "ftp", 3) == 0) )
 	    /* NO-OP */ ;
 	else if ( ((p - the_URL) >= 4) && (strncmp(&p[-4], "http", 4) == 0) )
+	    /* NO-OP */ ;
+	else if ( ((p - the_URL) >= 5) && (strncmp(&p[-5], "https", 5) == 0) )
 	    /* NO-OP */ ;
 	else
 	    warning("Unexpected protocol://... in URL value ``%v'': normally ftp://... or http://...");

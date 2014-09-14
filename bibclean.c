@@ -250,10 +250,6 @@ RCSID("$Id: bibclean.c,v 1.21 2014/04/03 18:00:15 beebe Exp beebe $")
 #include "match.h"			/* must come AFTER yesorno.h */
 #include "typedefs.h"			/* must come AFTER match.h */
 
-#if defined(sun386)
-/* Sun386i run-time library bug in fputs(): only first line in s is written! */
-#define fputs(s,fp) fwrite(s,1,strlen(s),fp)
-#endif
 
 #if !defined(BIBCLEAN_INI)
 #define BIBCLEAN_INI		"BIBCLEANINI"	/* environment variable */
@@ -283,12 +279,7 @@ RCSID("$Id: bibclean.c,v 1.21 2014/04/03 18:00:15 beebe Exp beebe $")
 #undef FOPEN
 #endif
 
-#if defined(__SUNCC__)
-#define FOPEN(a,b) fopen((char*)(a),(char*)(b))
-	/* bug workaround: wrong type for fopen() args with SunOS 4.1.2 CC */
-#else /* NOT defined(__SUNCC__) */
 #define FOPEN(a,b) fopen((a),(b))
-#endif /* defined(__SUNCC__) */
 
 #define GETDEFAULT(envname,default) \
 	((getenv(envname) != (char *)NULL) ? getenv(envname) : default)
@@ -330,11 +321,7 @@ int field_indentation = FIELD_INDENTATION;
 #include "token.h"
 
 #if !defined(SCREEN_LINES)
-#if OS_PCDOS
-#define SCREEN_LINES	25	/* set 0 to disable pausing in out_lines() */
-#else /* NOT OS_PCDOS */
 #define SCREEN_LINES	24	/* set 0 to disable pausing in out_lines() */
-#endif /* OS_PCDOS */
 #endif /* !defined(SCREEN_LINES) */
 
 #define VALUE_INDENTATION	(FIELD_INDENTATION + MAX_FIELD_LENGTH + 3)
@@ -369,20 +356,6 @@ int value_indentation = VALUE_INDENTATION;
 
 #endif /* OS_UNIX */
 
-#if OS_VAXVMS
-#if !defined(INITFILE)
-#define INITFILE	"bibclean.ini"
-#endif
-
-#if !defined(SYSPATH)
-#define SYSPATH		"SYS$SYSTEM"
-#endif
-
-#if !defined(USERPATH)
-#define USERPATH	"BIBINPUTS"
-#endif
-
-#endif /* OS_VAXVMS */
 
 /* For any that are undefined, default to values suitable for OS_PCDOS. */
 #if !defined(INITFILE)
@@ -569,13 +542,7 @@ PATTERN_NAMES pattern_names[MAX_PATTERN_NAMES] =
     {"pages",		(PATTERN_TABLE*)NULL},
     {"volume",		(PATTERN_TABLE*)NULL},
     {"year",		(PATTERN_TABLE*)NULL},
-
-#if _AIX370
-    {NULL,		NULL},	/* CC compiler cannot handle correct cast */
-#else /* NOT _AIX370 */
     {(CONST char*)NULL,	(PATTERN_TABLE*)NULL}, /* entry terminator */
-#endif /* _AIX370 */
-
     /* remaining slots may be initialized at run time */
 };
 
@@ -602,10 +569,6 @@ YESorNO		show_file_position = NO; 	/* messages usually brief */
 FILE		*stdlog;			/* usually stderr */
 YESorNO		stdlog_on_stdout = YES;		/* NO for separate files */
 
-#if OS_PCDOS
-unsigned int _stklen = 0xF000;			/* stack size for Turbo C */
-#endif /* OS_PCDOS */
-
 IO_PAIR		token_start;			/* used for # line output */
 IO_PAIR		the_entry;			/* used in error messages */
 IO_PAIR		the_file;			/* used in error messages */
@@ -618,16 +581,13 @@ YESorNO		wrapping = YES;			/* NO: verbatim output */
 /**********************************************************************/
 
 
-#if defined(HAVE_STDC)
+
+/**
+ * Return YES if function matching option was invoked, otherwise NO.
+ */
 YESorNO
 apply_function(const char *option, OPTION_FUNCTION_ENTRY table[])
-#else /* K&R style */
-YESorNO
-apply_function(option,table)
-const char *option;
-OPTION_FUNCTION_ENTRY table[];
-#endif
-{	/* return YES if function matching option was invoked, otherwise NO */
+{
     int k;			/* index into table[] */
     size_t n;
 
@@ -635,7 +595,7 @@ OPTION_FUNCTION_ENTRY table[];
 
     for (k = 0; table[k].name != (const char*)NULL; ++k)
     {
-	if (strnicmp(option,table[k].name,MAX(n,table[k].min_match)) == 0)
+	if (strnicmp(option, table[k].name, MAX(n, table[k].min_match)) == 0)
 	{
 	    table[k].function();
 	    return (YES);
@@ -728,14 +688,8 @@ blastc(VOID)			/* return last character in buffer, or EOF */
 }
 
 
-#if defined(HAVE_STDC)
 static int				/* return char at (negative) offset */
 bpeekc(int offset)			/* from end of buf[], or EOF */
-#else /* K&R style */
-static int
-bpeekc(offset)
-int offset;
-#endif
 {
     int k;
 
@@ -744,14 +698,8 @@ int offset;
 }
 
 
-#if defined(HAVE_STDC)
 static void
 bputc(int c)				/* output c to buf[] */
-#else /* K&R style */
-static void
-bputc(c)
-int c;
-#endif
 {
     if (buf_length >= MAX_BUFFER)
 	bflush();
@@ -771,14 +719,8 @@ int c;
 }
 
 
-#if defined(HAVE_STDC)
 void			/* issue an error message */
 error(const char *msg)		/* default provided if this is NULL */
-#else /* K&R style */
-void
-error(msg)			/* issue an error message */
-const char *msg;		/* default provided if this is NULL */
-#endif
 {
     char *p;
 
@@ -808,28 +750,16 @@ const char *msg;		/* default provided if this is NULL */
 
 
 /*@noreturn@*/
-#if defined(HAVE_STDC)
 void				/* issue an error message and die */
 fatal(const char *msg)
-#else /* K&R style */
-void
-fatal(msg)			/* issue an error message and die */
-const char *msg;
-#endif
 {
     (void)fprintf(stdlog,"%s %s\n", ERROR_PREFIX, msg);
     exit(EXIT_FAILURE);
 }
 
 
-#if defined(HAVE_STDC)
 static char *
 format(const char *msg)
-#else /* K&R style */
-static char *
-format(msg)
-const char *msg;
-#endif
 {   /* expand %f, %k, %v, and %% items in msg[], return pointer to new copy */
     size_t k;
     size_t len;
@@ -900,14 +830,8 @@ const char *msg;
 }
 
 
-#if defined(HAVE_STDC)
 static void
 free_match_pattern(MATCH_PATTERN *mp)
-#else /* K&R style */
-static void
-free_match_pattern(mp)
-MATCH_PATTERN *mp;
-#endif
 {
     if (mp->pattern != (const char*)NULL)
     {					/* NB: (void*) cast fails with Sun C++ */
@@ -922,14 +846,8 @@ MATCH_PATTERN *mp;
 }
 
 
-#if defined(HAVE_STDC)
 static void
 free_pattern_table(PATTERN_TABLE *pt)
-#else /* K&R style */
-static void
-free_pattern_table(pt)
-PATTERN_TABLE *pt;
-#endif
 {
     if (pt != (PATTERN_TABLE*)NULL)
     {
@@ -939,14 +857,8 @@ PATTERN_TABLE *pt;
 }
 
 
-#if defined(HAVE_STDC)
 void
 free_pattern_table_entries(PATTERN_TABLE *pt)
-#else /* K&R style */
-void
-free_pattern_table_entries(pt)
-PATTERN_TABLE *pt;
-#endif
 {
     if (pt != (PATTERN_TABLE*)NULL)
     {
@@ -1133,14 +1045,8 @@ init_tables(VOID)
 }
 
 
-#if defined(HAVE_STDC)
 bool
 is_idchar(int c)
-#else /* K&R style */
-bool
-is_idchar(c)
-int c;
-#endif
 {
     /*
     ** See LaTeX User's Guide and Reference Manual, Section B.1.3, for
@@ -1164,25 +1070,12 @@ int c;
 }
 
 
-#if defined(HAVE_STDC)
 int
 main(int argc, char *argv[])
-#else /* K&R style */
-int
-main(argc,argv)
-int argc;
-char *argv[];
-#endif
 {
     const char *initfile;
     const char *ISBN_file;
     const char *keyword_file;
-
-#if defined(vms)
-    extern char **cmd_lin();
-
-    argv = cmd_lin( "", &argc, argv );
-#endif /* defined(vms) */
 
     initfile = GETDEFAULT(BIBCLEAN_INI,INITFILE);
     ISBN_file = GETDEFAULT(BIBCLEAN_ISBN,ISBNFILE);
@@ -1245,24 +1138,12 @@ char *argv[];
 
     free_tables();
 
-#if OS_VAXVMS
-    exit ((error_count > 0) ? EXIT_FAILURE : EXIT_SUCCESS);
-#endif /* OS_VAXVMS */
-
     return ((error_count > 0) ? EXIT_FAILURE : EXIT_SUCCESS);
 }
 
 
-#if defined(HAVE_STDC)
 void
 Memmove(void *target, const void *source, size_t n)
-#else /* K&R style */
-void
-Memmove(target, source, n)
-void *target;
-const void *source;
-size_t n;
-#endif
 {
     char *t;
     const char *s;
@@ -1283,16 +1164,8 @@ size_t n;
 }
 
 
-#if defined(HAVE_STDC)
 void*
 Memset(void *target, int value, size_t n)
-#else /* K&R style */
-void*
-Memset(target, value, n)
-void *target;
-int value;
-size_t n;
-#endif
 {
     unsigned char *t = (unsigned char*)target;
 
@@ -1310,14 +1183,8 @@ out_at(VOID)
 }
 
 
-#if defined(HAVE_STDC)
 void				/* output c, but trim trailing blanks, */
 out_c(int c)			/* and output buffer if c == EOF */
-#else /* K&R style */
-void
-out_c(c)			/* output c, but trim trailing blanks, */
-int c;				/* and output buffer if c == EOF */
-#endif
 {
     int offset;
 
@@ -1352,16 +1219,6 @@ int c;				/* and output buffer if c == EOF */
 	}
 	break;
 
-#if OS_PCDOS
-    case '\r':
-	/* Because we open the input file in binary mode to prevent
-	   Ctl-Z causing an end-of-file, we see Ctl-M characters.  We
-	   simply discard them here: they will be supplied by the
-	   run-time library when the following newline is written,
-	   since the output files are opened in text mode. */
-	break;
-#endif
-
     case '\n':
 	for (c = blastc(); (c == (int)' ') || (c == (int)'\t'); c = blastc())
 	    bdelc();			/* discard trailing horizontal space */
@@ -1385,15 +1242,8 @@ int c;				/* and output buffer if c == EOF */
 }
 
 
-#if defined(HAVE_STDC)
 static void
 out_error(FILE *fpout, const char *s)
-#else /* K&R style */
-static void
-out_error(fpout, s)
-FILE *fpout;
-const char *s;
-#endif
 {
     if (fpout == stdout)	/* private handling of stdout so we */
 	out_s(s);		/* can track positions */
@@ -1411,14 +1261,8 @@ out_flush(VOID)			/* flush buffered output */
 }
 
 
-#if defined(HAVE_STDC)
 static void
 out_input_position(IO_PAIR *pair)
-#else /* K&R style */
-static void
-out_input_position(pair)
-IO_PAIR *pair;
-#endif
 {
     out_s("# line ");
     out_number(pair->input.line_number);
@@ -1428,16 +1272,8 @@ IO_PAIR *pair;
 }
 
 
-#if defined(HAVE_STDC)
 void
 out_lines(FILE *fpout, const char *lines[], YESorNO pausing)
-#else /* K&R style */
-void
-out_lines(fpout, lines, pausing)
-FILE *fpout;
-const char *lines[];
-YESorNO pausing;
-#endif
 {
     int k;
 
@@ -1510,14 +1346,8 @@ out_newline(VOID)
 }
 
 
-#if defined(HAVE_STDC)
 static void
 out_number(long n)
-#else /* K&R style */
-static void
-out_number(n)
-long n;
-#endif
 {
     char number[22];			/* ceil(log10(2^64-1))+1, big enough */
 					/* for even 64-bit machines */
@@ -1526,16 +1356,8 @@ long n;
 }
 
 
-#if defined(HAVE_STDC)
 static void
 out_position(FILE* fpout, const char *msg, IO_PAIR *the_location)
-#else /* K&R style */
-static void
-out_position(fpout,msg,the_location)
-FILE* fpout;
-const char *msg;
-IO_PAIR *the_location;
-#endif
 {
     char s[sizeof(
 	" output byte=XXXXXXXXXX line=XXXXXXXXXX column=XXXXXXXXXX")+1];
@@ -1555,14 +1377,8 @@ IO_PAIR *the_location;
 }
 
 
-#if defined(HAVE_STDC)
 void
 out_s(const char *s)		/* output a string, wrapping long lines */
-#else /* K&R style */
-void
-out_s(s)			/* output a string, wrapping long lines */
-const char *s;
-#endif
 {
     /* The strings s[] has already had runs of whitespace of all kinds
        collapsed to single spaces.  The word_length() function returns 1
@@ -1610,14 +1426,8 @@ const char *s;
 }
 
 
-#if defined(HAVE_STDC)
 void
 out_spaces(int n)
-#else /* K&R style */
-void
-out_spaces(n)
-int n;
-#endif
 {
     if (prettyprint == YES)
     {
@@ -1631,15 +1441,8 @@ int n;
 }
 
 
-#if defined(HAVE_STDC)
 static void
 out_status (FILE* fpout,const char *prefix)
-#else /* K&R style */
-static void
-out_status(fpout,prefix)
-FILE* fpout;
-const char *prefix;
-#endif
 {
     if (show_file_position == YES)
     {
@@ -1662,15 +1465,8 @@ const char *prefix;
 }
 
 
-#if defined(HAVE_STDC)
 void
 out_string(token_t type, const char *token)
-#else /* K&R style */
-void
-out_string(type,token)
-token_t type;
-const char *token;
-#endif
 {
     if (KEEP_PREAMBLE_SPACES())
 	out_verbatim(token);
@@ -1683,15 +1479,8 @@ const char *token;
 }
 
 
-#if defined(HAVE_STDC)
 void
 out_token(token_t type, const char *token) /* lexical analysis output */
-#else /* K&R style */
-void
-out_token(type,token)
-token_t type;
-const char *token;
-#endif
 {
     char octal[4 + 1];
     static long last_line_number = 0L;
@@ -1764,14 +1553,8 @@ const char *token;
 }
 
 
-#if defined(HAVE_STDC)
 static void
 out_verbatim(const char *token)
-#else /* K&R style */
-static void
-out_verbatim(token)
-const char *token;
-#endif
 {
     for (; (*token != '\0'); ++token)
     {
@@ -1792,15 +1575,8 @@ const char *token;
 }
 
 
-#if defined(HAVE_STDC)
 void
 out_with_error(const char *s, const char *msg)
-#else /* K&R style */
-void
-out_with_error(s,msg)	/* output string s, error message, and resynchronize */
-const char *s;
-const char *msg;
-#endif
 {
     out_s(s);
     error(msg);
@@ -1808,27 +1584,15 @@ const char *msg;
 }
 
 
-#if defined(HAVE_STDC)
 void
 out_with_parbreak_error(char *s)
-#else /* K&R style */
-void
-out_with_parbreak_error(s)
-char *s;
-#endif
 {
     out_with_error(s, "Unexpected paragraph break for field ``%f''");
 }
 
 
-#if defined(HAVE_STDC)
 void
 put_back(int c)		/* put last get_char() value back onto input stream */
-#else /* K&R style */
-void
-put_back(c)		/* put last get_char() value back onto input stream */
-int c;
-#endif
 {
     if (n_pushback >= MAX_PUSHBACK)
     {
@@ -1871,14 +1635,8 @@ resync(VOID)			/* copy input to output until new entry met */
 }
 
 
-#if defined(HAVE_STDC)
 char*
 Strdup(const char *s)
-#else /* K&R style */
-char*
-Strdup(s)
-const char *s;
-#endif
 {
     char *p;
     p = (char*)malloc(strlen(s)+1);
@@ -1888,15 +1646,8 @@ const char *s;
 }
 
 
-#if defined(HAVE_STDC)
 int
 stricmp(const char *s1,const char *s2)
-#else /* K&R style */
-int
-stricmp(s1, s2)
-const char *s1;
-const char *s2;
-#endif
 {
 
 #define TOUPPER(c) (Islower(c) ? toupper((int)(c)) : (int)(c))
@@ -1913,16 +1664,8 @@ const char *s2;
 }
 
 
-#if defined(HAVE_STDC)
 int
 strnicmp(const char *s1, const char *s2, size_t n)
-#else /* K&R style */
-int
-strnicmp(s1,s2,n)
-const char	*s1;
-const char	*s2;
-size_t		n;
-#endif
 {
     int	   c1;
     int	   c2;
@@ -1950,17 +1693,9 @@ size_t		n;
 }
 
 
-#if defined(HAVE_STDC)
 /*@null@*/
 FILE*
 tfopen(const char *filename, const char *mode) /* traced file opening */
-#else /* K&R style */
-/*@null@*/
-FILE*
-tfopen(filename,mode)
-const char *filename;
-const char *mode;
-#endif
 {
     FILE *fp;
 
@@ -1972,14 +1707,8 @@ const char *mode;
 }
 
 
-#if defined(HAVE_STDC)
 void
 warning(const char *msg)	/* issue a warning message to stdlog */
-#else /* K&R style */
-void
-warning(msg)			/* issue a warning message to stdlog */
-const char *msg;
-#endif
 {
     if (warnings == YES)
     {
@@ -2001,14 +1730,8 @@ const char *msg;
 }
 
 
-#if defined(HAVE_STDC)
 static size_t
 word_length(const char *s)	/* return length of leading non-blank prefix */
-#else /* K&R style */
-static size_t
-word_length(s)			/* return length of leading non-blank prefix */
-const char *s;
-#endif
 {
     size_t n;
 
@@ -2044,34 +1767,12 @@ wrap_line(VOID)			/* insert a new line and leading indentation */
 /**********************************************************************/
 
 #if defined(HAVE_RECOMP)
-#if (_AIX || ultrix)
-/* AIX 370, AIX PS/2, and ULTRIX have these, but no regex.h, sigh... */
-#if __cplusplus
-extern "C" {
-#endif /* __cplusplus */
-
-char		*re_comp ARGS((const char *s_));
-int		re_exec ARGS((const char *s_));
-
-#if __cplusplus
-};
-#endif /* __cplusplus */
-
-#else /* NOT (_AIX || ultrix) */
 #if defined(HAVE_REGEX_H)
 #include <regex.h>
 #endif
-#endif /* (_AIX || ultrix) */
 
-#if defined(HAVE_STDC)
 static int
 match_regexp(const char *string,const char *pattern)
-#else /* K&R style */
-static int
-match_regexp(string,pattern)
-const char *string;
-const char *pattern;
-#endif
 {
     if (re_comp(pattern) != (char*)NULL)
 	fatal("Internal error: bad regular expression");
@@ -2110,15 +1811,8 @@ regerr(VOID)
 #endif
 
 
-#if defined(HAVE_STDC)
 static int
 match_regexp(const char *string,const char *pattern)
-#else /* K&R style */
-static int
-match_regexp(string,pattern)
-const char *string;
-const char *pattern;
-#endif
 {
     char	expbuf[MAX_TOKEN_SIZE];
 

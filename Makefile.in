@@ -8,8 +8,6 @@
 ###	bibclean		executable for bibclean
 ###	bibclean.h		documentation strings for help()
 ###				function
-###	bibclean.hlp		VAX VMS help file (automatically
-###				converted from bibclean.txt)
 ###	bibclean.html		HTML version of formatted manual pages
 ###	bibclean.i		C preprocessor output from bibclean.c
 ###	bibclean.jar		Java Jar distribution archive
@@ -27,8 +25,7 @@
 ###	clobber			clean up everything
 ###	distclean		remove everything make can rebuild at
 ###				remote site
-###	docs			make bibclean.txt, bibclean.hlp, and
-###				bibclean.ps
+###	docs			make bibclean.txt, and bibclean.ps
 ###	install			install executable and man pages
 ###	install.time		internal target for install
 ###	install-exe		install executable
@@ -169,7 +166,7 @@ DATE		= @DATE@
 DIFF		= @DIFF@
 
 DIST-FILES      = ChangeLog COPYING README Makefile.in bibclean.c bibclean.h \
-		  bibclean.hlp bibclean.html bibclean.ini bibclean.isbn \
+		  bibclean.html bibclean.ini bibclean.isbn \
 		  bibclean.key bibclean.man bibclean.pdf bibclean.ps \
 		  bibclean.reg bibclean.txt build-all.sh ch.h chek.c \
 		  config.hin configure configure.in configure.sed custom.h \
@@ -181,7 +178,7 @@ DIST-FILES      = ChangeLog COPYING README Makefile.in bibclean.c bibclean.h \
 		  xpwd.h xstat.h xstdbool.h xstdio.h xstdlib.h xstring.h \
 		  xtypes.h xunistd.h yesorno.h testscr2.bo2 testscr2.eo2 \
 		  $(FILES-DOC) $(FILES-IBMPC) $(FILES-SAVE) $(FILES-TEST) \
-		  $(FILES-VMS) $(FILES-WINDOWS)
+		  $(FILES-WINDOWS)
 
 DISTILL		= @DISTILL@
 
@@ -353,17 +350,6 @@ FILES-TEST      = test/match.in test/okay/match.err \
 		  test/testscr2.opt test/testscr3.bib \
 		  test/testscr3.opt test/testscr4.bib \
 		  test/testscr4.opt
-
-FILES-VMS       = vms/config.h vms/alpha/bibclean.exe vms/alpha/recomp.com \
-		  vms/alpha/vmsclean.com vms/alpha/vmsmake.com \
-		  vms/alpha/vmstest.com vms/vax/README vms/vax/bibclean.exe \
-		  vms/vax/bibclean.obj vms/vax/chek.obj vms/vax/config.h \
-		  vms/vax/do.obj vms/vax/fix.obj vms/vax/fndfil.obj \
-		  vms/vax/getoneheader.com vms/vax/getvmsheaders.com \
-		  vms/vax/isbn.obj vms/vax/keybrd.obj vms/vax/match.obj \
-		  vms/vax/option.obj vms/vax/recomp.com vms/vax/romtol.obj \
-		  vms/vax/strist.obj vms/vax/vaxvms.obj vms/vax/vmsclean.com \
-		  vms/vax/vmsmake.com vms/vax/vmstest.com vms/vax/vmswild.obj
 
 FILES-WINDOWS	= win32/bibclean.exe
 
@@ -578,10 +564,6 @@ bibclean.h:	bibclean.man
 			printf("\t\"%s\\n\",\n",substr($$0,6))}' >>$@
 	echo '	(const char*)NULL,' >>$@
 	$(CHMOD) a-w $@
-
-### VAX VMS help file format from bibclean.txt
-bibclean.hlp:	bibclean.txt rofvms.awk
-	$(AWK) -f rofvms.awk <bibclean.txt >bibclean.hlp
 
 bibclean.html:	bibclean.man
 	-$(CHMOD) u+w $@
@@ -941,7 +923,6 @@ clean-test:
 
 clobber:	clean
 	-$(RM) $(PROGRAMS)
-	-$(RM) bibclean.hlp
 	-$(RM) bibclean.ps
 	-$(RM) bibclean.txt
 	-$(RM) install.time install-ftp.time
@@ -959,13 +940,13 @@ distclean: clobber
 	# -for d in $(SUBDIRS) ; do (cd $$d ; $(MAKE) distclean ) ; done
 	-$(RM) Makefile
 
-docs:	bibclean.txt bibclean.hlp bibclean.html bibclean.ps bibclean.pdf
+docs:	bibclean.txt bibclean.html bibclean.ps bibclean.pdf
 
 chek.i:		chek.c config.h custom.h match.h token.h typedefs.h xctype.h \
 		xstat.h xstdio.h xstring.h yesorno.h Makefile
 
 chek.o:		chek.c config.h custom.h match.h token.h typedefs.h xctype.h \
-		xstat.h xstdio.h xstring.h yesorno.h
+		xstat.h xstdio.h xstring.h yesorno.h 
 
 do.i:           do.c ch.h config.h custom.h delete.h keybrd.h match.h \
 		pattern.h token.h toklst.h typedefs.h xctype.h xstdbool.h \
