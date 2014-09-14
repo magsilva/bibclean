@@ -367,7 +367,9 @@ fix_ISBN_13(const char *ISBN_13)
 	if (ISBN_range[k].begin[0] == '-')
 	    continue;			/* ignored `deleted' entries */
 	if (in_ISBN_range(ISBN_range[k].begin, &ISBN_13[3], ISBN_range[k].end)  == 0)
+        {
 	    return (hyphenate_one_ISBN_13(ISBN_range[k].begin, ISBN_13));
+        }
     }
     return ((const char*)NULL);
 }
@@ -430,35 +432,33 @@ hyphenate_one_ISBN(const char *prefix, const char *ISBN)
 }
 
 
+/**
+ * Given an ISBN-10 countrygroupnumber-publishernumber prefix, and
+ * an ISBN-13 optionally containing spaces and hyphens, return a
+ * pointer to an unmodifiable properly-hyphenated ISBN-13 stored in
+ * an internal buffer that is overwritten on subsequent calls, or
+ * NULL if the correct number of ISBN-13 digits is not found.
+ * 
+ * The input ISBN-13 can contain optional leading and trailing text,
+ * such as a line from a BibTeX .bib file, like this:
+ *
+ * 	SBN-13 =      "978-0-387-09823-4 (paperback)",
+ *
+ */
 static const char *
 hyphenate_one_ISBN_13(const char *prefix, const char *ISBN_13)
 {
-
-    /*******************************************************************
-      Given an ISBN-10 countrygroupnumber-publishernumber prefix, and
-      an ISBN-13 optionally containing spaces and hyphens, return a
-      pointer to an unmodifiable properly-hyphenated ISBN-13 stored in
-      an internal buffer that is overwritten on subsequent calls, or
-      NULL if the correct number of ISBN-13 digits is not found.
-
-      The input ISBN-13 can contain optional leading and trailing text,
-      such as a line from a BibTeX .bib file, like this:
-
-	 ISBN-13 =      "978-0-387-09823-4 (paperback)",
-
-     ******************************************************************/
-
     static char new_ISBN_13[MAX_ISBN_13];
     int k;
 
+
     skip_non_ISBN_digit(ISBN_13);
 
-    for (k = 0; (*ISBN_13 != '\0') && (k < (MAX_ISBN_13 - 2)); )
+    for (k = 0; (*ISBN_13 != '\0') && (k < (MAX_ISBN_13 - 1)); )
     {
 	if (k == 0)
 	{
-	    if ( (strncmp("978", ISBN_13, 3) == 0) ||
-		 (strncmp("979", ISBN_13, 3) == 0) )
+	    if ((strncmp("978", ISBN_13, 3) == 0) || (strncmp("979", ISBN_13, 3) == 0) )
 	    {
 		new_ISBN_13[k++] = *ISBN_13++;
 		new_ISBN_13[k++] = *ISBN_13++;
@@ -466,7 +466,9 @@ hyphenate_one_ISBN_13(const char *prefix, const char *ISBN_13)
 		new_ISBN_13[k++] = '-';
 	    }
 	    else
+            {
 		warning("ISBN-13 must begin with either 978 or 979: ``%v''");
+            }
 	}
 
 	if (*prefix == '-')
@@ -492,10 +494,10 @@ hyphenate_one_ISBN_13(const char *prefix, const char *ISBN_13)
 	    new_ISBN_13[k++] = *ISBN_13++;
 	}
     }
+
     if ((k == (MAX_ISBN_13 - 2)) && !isISBNdigit(*ISBN_13))
     {
-	new_ISBN_13[(MAX_ISBN_13 - 2)] = new_ISBN_13[(MAX_ISBN_13 - 3)];
-				/* move checksum digit to end */
+	new_ISBN_13[(MAX_ISBN_13 - 2)] = new_ISBN_13[(MAX_ISBN_13 - 3)]; /* move checksum digit to end */
 	new_ISBN_13[(MAX_ISBN_13 - 3)] = '-';	/* prefix it with a hyphen */
 	new_ISBN_13[(MAX_ISBN_13 - 1)] = '\0'; /* terminate the string */
 	return ((const char*)&new_ISBN_13[0]);
