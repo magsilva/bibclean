@@ -1,9 +1,9 @@
 .\"=====================================================================
 .\"  @Troff-man-file{
 .\"     author          = "Nelson H. F. Beebe",
-.\"     version         = "2.16",
-.\"     date            = "03 April 2014",
-.\"     time            = "12:09:08 MDT",
+.\"     version         = "2.17",
+.\"     date            = "15 February 2015",
+.\"     time            = "07:15:14 MST",
 .\"     filename        = "bibclean.man",
 .\"     address         = "University of Utah
 .\"                        Department of Mathematics, 110 LCB
@@ -13,7 +13,7 @@
 .\"     telephone       = "+1 801 581 5254",
 .\"     FAX             = "+1 801 581 4148",
 .\"     URL             = "http://www.math.utah.edu/~beebe",
-.\"     checksum        = "33431 2029 8225 56873",
+.\"     checksum        = "50654 2029 8225 56879",
 .\"     email           = "beebe@math.utah.edu, beebe@acm.org,
 .\"                        beebe@computer.org  (Internet)",
 .\"     codetable       = "ISO/ASCII",
@@ -45,7 +45,7 @@
 .if n .ds Te TeX
 .\"
 .\"=====================================================================
-.TH BIBCLEAN 1 "03 April 2014" "Version 2.16"
+.TH BIBCLEAN 1 "15 February 2015" "Version 2.17"
 .\"=====================================================================
 .SH NAME
 bibclean \- prettyprint and syntax check BibTeX and Scribe bibliography \

@@ -132,15 +132,40 @@ BIBTEX		= @BIBTEX@
 
 CAT		= @CAT@
 
-CHECK-BIBTEX    = testbib1 testbib2 testbib3 testbib4 testbib5 \
-		  testbib6 testbib7 testcodn testisxn testopt1 \
-		  testopt2 testopt3 testopt4 testopt5 testopt6 \
-		  testopt7 testopt8 testopt9 testopta testoptb \
-		  testoptc testoptd testopte testoptf testoptg \
-		  testopth testopti testoptj testoptk testoptl \
-		  testoptm testoptn testopto testoptp testoptq \
-		  testoptr testopts testoptt testoptu testoptv \
-		  testoptw
+### The topt1* tests try all recognized options with a single leading dash, and
+### the topt3* tests are their companions with two leading dashes.  However, we
+### intentionally EXCLUDE topt163 and topt363 because they hold -print-patterns
+### options whose output is site-dependent.  We have no tests for
+### -trace-file-opening because that too is site-dependent, and also
+### user-dependent.
+
+CHECK-BIBTEX    = testbib1 testbib2 testbib3 testbib4 testbib5 testbib6 \
+		  testbib7 testcodn testisxn testopt1 testopt2 testopt3 \
+		  testopt4 testopt5 testopt6 testopt7 testopt8 testopt9 \
+		  testopta testoptb testoptc testoptd testopte testoptf \
+		  testoptg testopth testopti testoptj testoptk testoptl \
+		  testoptm testoptn testopto testoptp testoptq testoptr \
+		  testopts testoptt testoptu testoptv testoptw topt101 \
+		  topt102 topt103 topt104 topt105 topt106 topt107 topt108 \
+		  topt109 topt110 topt111 topt112 topt113 topt114 topt115 \
+		  topt116 topt117 topt118 topt119 topt120 topt121 topt122 \
+		  topt123 topt124 topt125 topt126 topt127 topt128 topt129 \
+		  topt130 topt131 topt132 topt133 topt134 topt135 topt136 \
+		  topt137 topt138 topt139 topt140 topt141 topt142 topt143 \
+		  topt144 topt145 topt146 topt147 topt148 topt149 topt150 \
+		  topt151 topt152 topt153 topt154 topt155 topt156 topt157 \
+		  topt158 topt159 topt160 topt161 topt162         topt164 \
+		  topt165 topt166 topt167 topt168 topt169 topt301 topt302 \
+		  topt303 topt304 topt305 topt306 topt307 topt308 topt309 \
+		  topt310 topt311 topt312 topt313 topt314 topt315 topt316 \
+		  topt317 topt318 topt319 topt320 topt321 topt322 topt323 \
+		  topt324 topt325 topt326 topt327 topt328 topt329 topt330 \
+		  topt331 topt332 topt333 topt334 topt335 topt336 topt337 \
+		  topt338 topt339 topt340 topt341 topt342 topt343 topt344 \
+		  topt345 topt346 topt347 topt348 topt349 topt350 topt351 \
+		  topt352 topt353 topt354 topt355 topt356 topt357 topt358 \
+		  topt359 topt360 topt361 topt362         topt364 topt365 \
+		  topt366 topt367 topt368 topt369
 
 CHECK-LATEX	= testltx1.ltx
 
@@ -258,7 +283,8 @@ FILES-TEST      = test/match.in test/okay/match.err \
 		  test/okay/testbib3.out test/okay/testbib4.err \
 		  test/okay/testbib4.out test/okay/testbib5.err \
 		  test/okay/testbib5.out test/okay/testbib6.err \
-		  test/okay/testbib6.out test/okay/testcodn.err \
+		  test/okay/testbib6.out test/okay/testbib7.err \
+		  test/okay/testbib7.out test/okay/testcodn.err \
 		  test/okay/testcodn.out test/okay/testisxn.err \
 		  test/okay/testisxn.out test/okay/testltx1.bbl \
 		  test/okay/testltx1.blg test/okay/testltx1.err \
@@ -295,6 +321,7 @@ FILES-TEST      = test/match.in test/okay/match.err \
 		  test/okay/testoptu.out test/okay/testoptu.win \
 		  test/okay/testoptv.err test/okay/testoptv.out \
 		  test/okay/testoptw.err test/okay/testoptw.out \
+		  test/okay/testoptx.err test/okay/testoptx.out \
 		  test/okay/testscr1.bbl test/okay/testscr1.blg \
 		  test/okay/testscr1.err test/okay/testscr1.out \
 		  test/okay/testscr2.bbl test/okay/testscr2.blg \
@@ -303,6 +330,144 @@ FILES-TEST      = test/match.in test/okay/match.err \
 		  test/okay/testscr3.err test/okay/testscr3.out \
 		  test/okay/testscr4.bbl test/okay/testscr4.blg \
 		  test/okay/testscr4.err test/okay/testscr4.out \
+		  test/okay/topt101.err test/okay/topt101.out \
+		  test/okay/topt102.err test/okay/topt102.out \
+		  test/okay/topt103.err test/okay/topt103.out \
+		  test/okay/topt104.err test/okay/topt104.out \
+		  test/okay/topt105.err test/okay/topt105.out \
+		  test/okay/topt106.err test/okay/topt106.out \
+		  test/okay/topt107.err test/okay/topt107.out \
+		  test/okay/topt108.err test/okay/topt108.out \
+		  test/okay/topt109.err test/okay/topt109.out \
+		  test/okay/topt110.err test/okay/topt110.out \
+		  test/okay/topt111.err test/okay/topt111.out \
+		  test/okay/topt112.err test/okay/topt112.out \
+		  test/okay/topt113.err test/okay/topt113.out \
+		  test/okay/topt114.err test/okay/topt114.out \
+		  test/okay/topt115.err test/okay/topt115.out \
+		  test/okay/topt116.err test/okay/topt116.out \
+		  test/okay/topt117.err test/okay/topt117.out \
+		  test/okay/topt118.err test/okay/topt118.out \
+		  test/okay/topt119.err test/okay/topt119.out \
+		  test/okay/topt120.err test/okay/topt120.out \
+		  test/okay/topt121.err test/okay/topt121.out \
+		  test/okay/topt122.err test/okay/topt122.out \
+		  test/okay/topt123.err test/okay/topt123.out \
+		  test/okay/topt124.err test/okay/topt124.out \
+		  test/okay/topt125.err test/okay/topt125.out \
+		  test/okay/topt126.err test/okay/topt126.out \
+		  test/okay/topt127.err test/okay/topt127.out \
+		  test/okay/topt128.err test/okay/topt128.out \
+		  test/okay/topt129.err test/okay/topt129.out \
+		  test/okay/topt130.err test/okay/topt130.out \
+		  test/okay/topt131.err test/okay/topt131.out \
+		  test/okay/topt132.err test/okay/topt132.out \
+		  test/okay/topt133.err test/okay/topt133.out \
+		  test/okay/topt134.err test/okay/topt134.out \
+		  test/okay/topt135.err test/okay/topt135.out \
+		  test/okay/topt136.err test/okay/topt136.out \
+		  test/okay/topt137.err test/okay/topt137.out \
+		  test/okay/topt138.err test/okay/topt138.out \
+		  test/okay/topt139.err test/okay/topt139.out \
+		  test/okay/topt140.err test/okay/topt140.out \
+		  test/okay/topt141.err test/okay/topt141.out \
+		  test/okay/topt142.err test/okay/topt142.out \
+		  test/okay/topt143.err test/okay/topt143.out \
+		  test/okay/topt144.err test/okay/topt144.out \
+		  test/okay/topt145.err test/okay/topt145.out \
+		  test/okay/topt146.err test/okay/topt146.out \
+		  test/okay/topt147.err test/okay/topt147.out \
+		  test/okay/topt148.err test/okay/topt148.out \
+		  test/okay/topt149.err test/okay/topt149.out \
+		  test/okay/topt150.err test/okay/topt150.out \
+		  test/okay/topt151.err test/okay/topt151.out \
+		  test/okay/topt152.err test/okay/topt152.out \
+		  test/okay/topt153.err test/okay/topt153.out \
+		  test/okay/topt154.err test/okay/topt154.out \
+		  test/okay/topt155.err test/okay/topt155.out \
+		  test/okay/topt156.err test/okay/topt156.out \
+		  test/okay/topt157.err test/okay/topt157.out \
+		  test/okay/topt158.err test/okay/topt158.out \
+		  test/okay/topt159.err test/okay/topt159.out \
+		  test/okay/topt160.err test/okay/topt160.out \
+		  test/okay/topt161.err test/okay/topt161.out \
+		  test/okay/topt162.err test/okay/topt162.out \
+		  test/okay/topt163.err test/okay/topt163.out \
+		  test/okay/topt164.err test/okay/topt164.out \
+		  test/okay/topt165.err test/okay/topt165.out \
+		  test/okay/topt166.err test/okay/topt166.out \
+		  test/okay/topt167.err test/okay/topt167.out \
+		  test/okay/topt168.err test/okay/topt168.out \
+		  test/okay/topt169.err test/okay/topt169.out \
+		  test/okay/topt301.err test/okay/topt301.out \
+		  test/okay/topt302.err test/okay/topt302.out \
+		  test/okay/topt303.err test/okay/topt303.out \
+		  test/okay/topt304.err test/okay/topt304.out \
+		  test/okay/topt305.err test/okay/topt305.out \
+		  test/okay/topt306.err test/okay/topt306.out \
+		  test/okay/topt307.err test/okay/topt307.out \
+		  test/okay/topt308.err test/okay/topt308.out \
+		  test/okay/topt309.err test/okay/topt309.out \
+		  test/okay/topt310.err test/okay/topt310.out \
+		  test/okay/topt311.err test/okay/topt311.out \
+		  test/okay/topt312.err test/okay/topt312.out \
+		  test/okay/topt313.err test/okay/topt313.out \
+		  test/okay/topt314.err test/okay/topt314.out \
+		  test/okay/topt315.err test/okay/topt315.out \
+		  test/okay/topt316.err test/okay/topt316.out \
+		  test/okay/topt317.err test/okay/topt317.out \
+		  test/okay/topt318.err test/okay/topt318.out \
+		  test/okay/topt319.err test/okay/topt319.out \
+		  test/okay/topt320.err test/okay/topt320.out \
+		  test/okay/topt321.err test/okay/topt321.out \
+		  test/okay/topt322.err test/okay/topt322.out \
+		  test/okay/topt323.err test/okay/topt323.out \
+		  test/okay/topt324.err test/okay/topt324.out \
+		  test/okay/topt325.err test/okay/topt325.out \
+		  test/okay/topt326.err test/okay/topt326.out \
+		  test/okay/topt327.err test/okay/topt327.out \
+		  test/okay/topt328.err test/okay/topt328.out \
+		  test/okay/topt329.err test/okay/topt329.out \
+		  test/okay/topt330.err test/okay/topt330.out \
+		  test/okay/topt331.err test/okay/topt331.out \
+		  test/okay/topt332.err test/okay/topt332.out \
+		  test/okay/topt333.err test/okay/topt333.out \
+		  test/okay/topt334.err test/okay/topt334.out \
+		  test/okay/topt335.err test/okay/topt335.out \
+		  test/okay/topt336.err test/okay/topt336.out \
+		  test/okay/topt337.err test/okay/topt337.out \
+		  test/okay/topt338.err test/okay/topt338.out \
+		  test/okay/topt339.err test/okay/topt339.out \
+		  test/okay/topt340.err test/okay/topt340.out \
+		  test/okay/topt341.err test/okay/topt341.out \
+		  test/okay/topt342.err test/okay/topt342.out \
+		  test/okay/topt343.err test/okay/topt343.out \
+		  test/okay/topt344.err test/okay/topt344.out \
+		  test/okay/topt345.err test/okay/topt345.out \
+		  test/okay/topt346.err test/okay/topt346.out \
+		  test/okay/topt347.err test/okay/topt347.out \
+		  test/okay/topt348.err test/okay/topt348.out \
+		  test/okay/topt349.err test/okay/topt349.out \
+		  test/okay/topt350.err test/okay/topt350.out \
+		  test/okay/topt351.err test/okay/topt351.out \
+		  test/okay/topt352.err test/okay/topt352.out \
+		  test/okay/topt353.err test/okay/topt353.out \
+		  test/okay/topt354.err test/okay/topt354.out \
+		  test/okay/topt355.err test/okay/topt355.out \
+		  test/okay/topt356.err test/okay/topt356.out \
+		  test/okay/topt357.err test/okay/topt357.out \
+		  test/okay/topt358.err test/okay/topt358.out \
+		  test/okay/topt359.err test/okay/topt359.out \
+		  test/okay/topt360.err test/okay/topt360.out \
+		  test/okay/topt361.err test/okay/topt361.out \
+		  test/okay/topt362.err test/okay/topt362.out \
+		  test/okay/topt363.err test/okay/topt363.out \
+		  test/okay/topt364.err test/okay/topt364.out \
+		  test/okay/topt365.err test/okay/topt365.out \
+		  test/okay/topt366.err test/okay/topt366.out \
+		  test/okay/topt367.err test/okay/topt367.out \
+		  test/okay/topt368.err test/okay/topt368.out \
+		  test/okay/topt369.err test/okay/topt369.out \
 		  test/okay/tstctype.out test/romtol.in \
 		  test/testbib1.bib test/testbib1.opt \
 		  test/testbib2.bib test/testbib2.opt \
@@ -310,46 +475,187 @@ FILES-TEST      = test/match.in test/okay/match.err \
 		  test/testbib4.bib test/testbib4.opt \
 		  test/testbib5.bib test/testbib5.opt \
 		  test/testbib6.bib test/testbib6.opt \
+		  test/testbib7.bib test/testbib7.opt \
 		  test/testcodn.bib test/testcodn.opt \
 		  test/testisxn.bib test/testisxn.opt \
-		  test/testltx1.bin test/testltx1.ltx \
-		  test/testltx1.opt test/testopt1.bib \
-		  test/testopt1.opt test/testopt2.bib \
-		  test/testopt2.opt test/testopt3.bib \
-		  test/testopt3.opt test/testopt4.bib \
-		  test/testopt4.opt test/testopt5.bib \
-		  test/testopt5.opt test/testopt6.bib \
-		  test/testopt6.opt test/testopt7.bib \
-		  test/testopt7.opt test/testopt8.bib \
-		  test/testopt8.opt test/testopt9.bib \
-		  test/testopt9.opt test/testopta.bib \
-		  test/testopta.opt test/testoptb.bib \
-		  test/testoptb.opt test/testoptc.bib \
-		  test/testoptc.opt test/testoptd.bib \
-		  test/testoptd.opt test/testopte.bib \
-		  test/testopte.opt test/testoptf.bib \
-		  test/testoptf.opt test/testoptg.bib \
-		  test/testoptg.opt test/testopth.bib \
-		  test/testopth.opt test/testopti.bib \
-		  test/testopti.opt test/testoptj.bib \
-		  test/testoptj.opt test/testoptk.bib \
-		  test/testoptk.opt test/testoptl.bib \
-		  test/testoptl.opt test/testoptm.bib \
-		  test/testoptm.opt test/testoptn.bib \
-		  test/testoptn.opt test/testopto.bib \
-		  test/testopto.opt test/testoptp.bib \
-		  test/testoptp.opt test/testoptq.bib \
-		  test/testoptq.opt test/testoptr.bib \
-		  test/testoptr.opt test/testopts.bib \
-		  test/testopts.opt test/testoptt.bib \
-		  test/testoptt.opt test/testoptu.bib \
-		  test/testoptu.opt test/testoptv.bib \
-		  test/testoptv.opt test/testoptw.bib \
-		  test/testoptw.opt test/testscr1.bib \
-		  test/testscr1.opt test/testscr2.bib \
-		  test/testscr2.opt test/testscr3.bib \
-		  test/testscr3.opt test/testscr4.bib \
-		  test/testscr4.opt
+		  test/testltx1.bib test/testltx1.bin \
+		  test/testltx1.ltx test/testltx1.opt \
+		  test/testopt1.bib test/testopt1.opt \
+		  test/testopt2.bib test/testopt2.opt \
+		  test/testopt3.bib test/testopt3.opt \
+		  test/testopt4.bib test/testopt4.opt \
+		  test/testopt5.bib test/testopt5.opt \
+		  test/testopt6.bib test/testopt6.opt \
+		  test/testopt7.bib test/testopt7.opt \
+		  test/testopt8.bib test/testopt8.opt \
+		  test/testopt9.bib test/testopt9.opt \
+		  test/testopta.bib test/testopta.opt \
+		  test/testoptb.bib test/testoptb.opt \
+		  test/testoptc.bib test/testoptc.opt \
+		  test/testoptd.bib test/testoptd.opt \
+		  test/testopte.bib test/testopte.opt \
+		  test/testoptf.bib test/testoptf.opt \
+		  test/testoptg.bib test/testoptg.opt \
+		  test/testopth.bib test/testopth.opt \
+		  test/testopti.bib test/testopti.opt \
+		  test/testoptj.bib test/testoptj.opt \
+		  test/testoptk.bib test/testoptk.opt \
+		  test/testoptl.bib test/testoptl.opt \
+		  test/testoptm.bib test/testoptm.opt \
+		  test/testoptn.bib test/testoptn.opt \
+		  test/testopto.bib test/testopto.opt \
+		  test/testoptp.bib test/testoptp.opt \
+		  test/testoptq.bib test/testoptq.opt \
+		  test/testoptr.bib test/testoptr.opt \
+		  test/testopts.bib test/testopts.opt \
+		  test/testoptt.bib test/testoptt.opt \
+		  test/testoptu.bib test/testoptu.opt \
+		  test/testoptv.bib test/testoptv.opt \
+		  test/testoptw.bib test/testoptw.opt \
+		  test/testoptx.in test/testoptx.opt \
+		  test/testscr1.bib test/testscr1.opt \
+		  test/testscr2.bib test/testscr2.opt \
+		  test/testscr3.bib test/testscr3.opt \
+		  test/testscr4.bib test/testscr4.opt \
+		  test/topt101.bib test/topt101.opt \
+		  test/topt102.bib test/topt102.opt \
+		  test/topt103.bib test/topt103.opt \
+		  test/topt104.bib test/topt104.opt \
+		  test/topt105.bib test/topt105.opt \
+		  test/topt106.bib test/topt106.opt \
+		  test/topt107.bib test/topt107.opt \
+		  test/topt108.bib test/topt108.opt \
+		  test/topt109.bib test/topt109.opt \
+		  test/topt110.bib test/topt110.opt \
+		  test/topt111.bib test/topt111.opt \
+		  test/topt112.bib test/topt112.opt \
+		  test/topt113.bib test/topt113.opt \
+		  test/topt114.bib test/topt114.opt \
+		  test/topt115.bib test/topt115.opt \
+		  test/topt116.bib test/topt116.opt \
+		  test/topt117.bib test/topt117.opt \
+		  test/topt118.bib test/topt118.opt \
+		  test/topt119.bib test/topt119.opt \
+		  test/topt120.bib test/topt120.opt \
+		  test/topt121.bib test/topt121.opt \
+		  test/topt122.bib test/topt122.opt \
+		  test/topt123.bib test/topt123.opt \
+		  test/topt124.bib test/topt124.opt \
+		  test/topt125.bib test/topt125.opt \
+		  test/topt126.bib test/topt126.opt \
+		  test/topt127.bib test/topt127.opt \
+		  test/topt128.bib test/topt128.opt \
+		  test/topt129.bib test/topt129.opt \
+		  test/topt130.bib test/topt130.opt \
+		  test/topt131.bib test/topt131.opt \
+		  test/topt132.bib test/topt132.opt \
+		  test/topt133.bib test/topt133.opt \
+		  test/topt134.bib test/topt134.opt \
+		  test/topt135.bib test/topt135.opt \
+		  test/topt136.bib test/topt136.opt \
+		  test/topt137.bib test/topt137.opt \
+		  test/topt138.bib test/topt138.opt \
+		  test/topt139.bib test/topt139.opt \
+		  test/topt140.bib test/topt140.opt \
+		  test/topt141.bib test/topt141.opt \
+		  test/topt142.bib test/topt142.opt \
+		  test/topt143.bib test/topt143.opt \
+		  test/topt144.bib test/topt144.opt \
+		  test/topt145.bib test/topt145.opt \
+		  test/topt146.bib test/topt146.opt \
+		  test/topt147.bib test/topt147.opt \
+		  test/topt148.bib test/topt148.opt \
+		  test/topt149.bib test/topt149.opt \
+		  test/topt150.bib test/topt150.opt \
+		  test/topt151.bib test/topt151.opt \
+		  test/topt152.bib test/topt152.opt \
+		  test/topt153.bib test/topt153.opt \
+		  test/topt154.bib test/topt154.opt \
+		  test/topt155.bib test/topt155.opt \
+		  test/topt156.bib test/topt156.opt \
+		  test/topt157.bib test/topt157.opt \
+		  test/topt158.bib test/topt158.opt \
+		  test/topt159.bib test/topt159.opt \
+		  test/topt160.bib test/topt160.opt \
+		  test/topt161.bib test/topt161.opt \
+		  test/topt162.bib test/topt162.opt \
+		  test/topt163.bib test/topt163.opt \
+		  test/topt164.bib test/topt164.opt \
+		  test/topt165.bib test/topt165.opt \
+		  test/topt166.bib test/topt166.opt \
+		  test/topt167.bib test/topt167.opt \
+		  test/topt168.bib test/topt168.opt \
+		  test/topt169.bib test/topt169.opt \
+		  test/topt301.bib test/topt301.opt \
+		  test/topt302.bib test/topt302.opt \
+		  test/topt303.bib test/topt303.opt \
+		  test/topt304.bib test/topt304.opt \
+		  test/topt305.bib test/topt305.opt \
+		  test/topt306.bib test/topt306.opt \
+		  test/topt307.bib test/topt307.opt \
+		  test/topt308.bib test/topt308.opt \
+		  test/topt309.bib test/topt309.opt \
+		  test/topt310.bib test/topt310.opt \
+		  test/topt311.bib test/topt311.opt \
+		  test/topt312.bib test/topt312.opt \
+		  test/topt313.bib test/topt313.opt \
+		  test/topt314.bib test/topt314.opt \
+		  test/topt315.bib test/topt315.opt \
+		  test/topt316.bib test/topt316.opt \
+		  test/topt317.bib test/topt317.opt \
+		  test/topt318.bib test/topt318.opt \
+		  test/topt319.bib test/topt319.opt \
+		  test/topt320.bib test/topt320.opt \
+		  test/topt321.bib test/topt321.opt \
+		  test/topt322.bib test/topt322.opt \
+		  test/topt323.bib test/topt323.opt \
+		  test/topt324.bib test/topt324.opt \
+		  test/topt325.bib test/topt325.opt \
+		  test/topt326.bib test/topt326.opt \
+		  test/topt327.bib test/topt327.opt \
+		  test/topt328.bib test/topt328.opt \
+		  test/topt329.bib test/topt329.opt \
+		  test/topt330.bib test/topt330.opt \
+		  test/topt331.bib test/topt331.opt \
+		  test/topt332.bib test/topt332.opt \
+		  test/topt333.bib test/topt333.opt \
+		  test/topt334.bib test/topt334.opt \
+		  test/topt335.bib test/topt335.opt \
+		  test/topt336.bib test/topt336.opt \
+		  test/topt337.bib test/topt337.opt \
+		  test/topt338.bib test/topt338.opt \
+		  test/topt339.bib test/topt339.opt \
+		  test/topt340.bib test/topt340.opt \
+		  test/topt341.bib test/topt341.opt \
+		  test/topt342.bib test/topt342.opt \
+		  test/topt343.bib test/topt343.opt \
+		  test/topt344.bib test/topt344.opt \
+		  test/topt345.bib test/topt345.opt \
+		  test/topt346.bib test/topt346.opt \
+		  test/topt347.bib test/topt347.opt \
+		  test/topt348.bib test/topt348.opt \
+		  test/topt349.bib test/topt349.opt \
+		  test/topt350.bib test/topt350.opt \
+		  test/topt351.bib test/topt351.opt \
+		  test/topt352.bib test/topt352.opt \
+		  test/topt353.bib test/topt353.opt \
+		  test/topt354.bib test/topt354.opt \
+		  test/topt355.bib test/topt355.opt \
+		  test/topt356.bib test/topt356.opt \
+		  test/topt357.bib test/topt357.opt \
+		  test/topt358.bib test/topt358.opt \
+		  test/topt359.bib test/topt359.opt \
+		  test/topt360.bib test/topt360.opt \
+		  test/topt361.bib test/topt361.opt \
+		  test/topt362.bib test/topt362.opt \
+		  test/topt363.bib test/topt363.opt \
+		  test/topt364.bib test/topt364.opt \
+		  test/topt365.bib test/topt365.opt \
+		  test/topt366.bib test/topt366.opt \
+		  test/topt367.bib test/topt367.opt \
+		  test/topt368.bib test/topt368.opt \
+		  test/topt369.bib test/topt369.opt
+
 
 FILES-WINDOWS	= win32/bibclean.exe
 
@@ -638,7 +944,7 @@ check-bibtex:	$(BIBCLEAN)
 	@echo
 	@echo "===================== begin BibTeX test ======================"
 	@echo
-	@echo This test takes from 1 to 20 seconds on current and vintage machines.
+	@echo This test takes from 25 to 250 seconds on current and vintage machines.
 	@echo Test times that are much longer indicate a SERIOUS problem.
 	@echo
 	@-cd test ; \

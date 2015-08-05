@@ -1,10 +1,10 @@
 %% :0:Unrecognized option switch: -bogus-option.
-bibclean Version 2.16 [03-Apr-2014]
+bibclean Version 2.17 [15-Feb-2015]
 
 with native pattern matching
 E-mail bug reports to Nelson H. F. Beebe <beebe@math.utah.edu>
 
-Copyright (C) 1990--2014 by Nelson H. F. Beebe and the Free Software Foundation, Inc.
+Copyright (C) 1990--2015 by Nelson H. F. Beebe and the Free Software Foundation, Inc.
 This is free software; see the source for copying conditions.  There is NO
 warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 

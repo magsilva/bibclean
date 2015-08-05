@@ -66,3 +66,7 @@ bc-number                      	BC-number
 cp-number                      	CP-number                      
 rep-number                     	REP-number                     
 series-url                     	series-URL                     
+mrauthor                       	MRauthor                       
+zbl                            	ZMnumber                       
+msc2010                        	MRnumber                       
+abstract-url                   	abstract-URL                   

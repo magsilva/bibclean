@@ -175,6 +175,7 @@ do_args(int argc, char *argv[])
 	{"keyword-file",		3,	opt_keyword_file},
 	{"max-width",			1,	opt_max_width},
 	{"no-align-equals",		4,	opt_align_equals},
+	{"no-brace-protect",		4,	opt_brace_protect },
 	{"no-check-values",		4,	opt_check_values},
 	{"no-debug-match-failures",	6,	opt_debug_match_failures},
 	{"no-delete-empty-values",	6,	opt_delete_empty_values},
@@ -336,7 +337,7 @@ opt_copyleft(VOID)
 {
     static CONST char *copyleft[] =
     {
-	"Copyright (C) 1990--2014 by Nelson H. F. Beebe and the Free Software Foundation, Inc.\n",
+	"Copyright (C) 1990--2015 by Nelson H. F. Beebe and the Free Software Foundation, Inc.\n",
 	"This is free software; see the source for copying conditions.  There is NO\n",
 	"warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n",
 	(const char*)NULL,
@@ -667,7 +668,7 @@ version(VOID)
 	"E-mail bug reports to ", PACKAGE_BUGREPORT, "\n",
 
 	"\n",
-	"Copyright (C) 1990--2014 by Nelson H. F. Beebe and the Free Software Foundation, Inc.\n",
+	"Copyright (C) 1990--2015 by Nelson H. F. Beebe and the Free Software Foundation, Inc.\n",
 	"This is free software; see the source for copying conditions.  There is NO\n",
 	"warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n",
 
