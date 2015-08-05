@@ -109,7 +109,7 @@ OPT		=
 VPATH           = @srcdir@
 
 ### Where to install the manual pages.
-mandir          = $(prefix)/man/man1
+mandir          = $(prefix)/share/man/man1
 ### Extension (not including `.') for the installed manual page filenames.
 manext          = 1
 
