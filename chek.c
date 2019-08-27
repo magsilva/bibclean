@@ -613,7 +613,8 @@ check_year(VOID)
 	if (Isdigit(*p))	/* then have digit string */
 	{			/* now make sure year is `reasonable' */
 	    year = strtol(p,&q,10);
-	    if ((year < 1800L) || (year > 2099L))
+	    /* Let's consider the date of the first printed book in Europe as reference (1455) */
+	    if ((year < 1455L) || (year > 2099L))
 		warning("Suspicious year in ``%f = %v''");
 	    p = q;
 	}
