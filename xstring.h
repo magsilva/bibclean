@@ -13,7 +13,7 @@ extern int	stricmp ARGS((const char *, const char *));
 extern char	*stristr ARGS((const char *s_, const char *sub_));
 extern int	strnicmp ARGS((const char *s1_, const char *s2_, size_t n_));
 
-#define STREQUAL(a,b)	(strcmp(a,b) == 0)
-#define STRGREATER(a,b)	(strcmp(a,b) > 0)
+#define STREQUAL(a,b)	(strcasecmp(a,b) == 0)
+#define STRGREATER(a,b)	(strcasecmp(a,b) > 0)
 
 #endif /* XSTRING_H_DEFINED_ */
